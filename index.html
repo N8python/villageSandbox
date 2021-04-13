@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Village Sandbox</title>
+    <script src="lib/phaser.min.js"></script>
+    <script src="lib/enable3d.phaserExtension.0.22.0-dev.1.min.js"></script>
+    <script src="scripts/constants.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/p5@1.3.1/lib/p5.js"></script>
+    <script src="https://unpkg.com/tinyqueue@2.0.0/tinyqueue.min.js"></script>
+    <script src="lib/threeX.js"></script>
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Kiwi+Maru:wght@300&display=swap" rel="stylesheet">
+    <link href="styles.css" rel="stylesheet">
+</head>
+
+<body>
+    <div style="left:95%;top:0%;transform:translate(-50%, 0%);position:absolute;z-index:20;width:25%;background-color:#345644;border:2px solid black;height:100%;padding:4px;padding-left:8px;padding-right:8px;overflow: scroll;">
+        <h1 id="unitName" style="position:relative;color:#ecddba;z-index: 21;margin-top:12px;"></h1>
+        <p id="unitInfo" style="position:relative;color:#ecddba;z-index: 21;margin-top:12px;"></p>
+        <div id="unitGui" style="position:relative;z-index: 21;margin-top:12px;"></div>
+    </div>
+    <script src="scripts/utils.js"></script>
+    <script src="scripts/crafting.js"></script>
+    <script src="scripts/tiles/tile.js"></script>
+    <script src="scripts/tiles/grass.js"></script>
+    <script src="scripts/tiles/dirt.js"></script>
+    <script src="scripts/tiles/stone.js"></script>
+    <script src="scripts/tiles/sand.js"></script>
+    <script src="scripts/tiles/water.js"></script>
+    <script src="scripts/tiles/entities/entity.js"></script>
+    <script src="scripts/tiles/entities/tree.js"></script>
+    <script src="scripts/tiles/entities/grassBlades.js"></script>
+    <script src="scripts/tiles/entities/bush.js"></script>
+    <script src="scripts/tiles/entities/rocks.js"></script>
+    <script src="scripts/tiles/entities/seashell.js"></script>
+    <script src="scripts/tiles/entities/house.js"></script>
+    <script src="scripts/tiles/entities/chest.js"></script>
+    <script src="scripts/tiles/entities/workBench.js"></script>
+    <script src="scripts/ai/tasks.js"></script>
+    <script src="scripts/agent/agent.js"></script>
+    <script src="scripts/gen/world.js"></script>
+    <script src="scripts/ai/pathfind.js"></script>
+    <script src="scripts/gui.js"></script>
+    <script src="scripts/main.js"></script>
+</body>
+
+</html>
