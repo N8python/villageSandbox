@@ -54,4 +54,19 @@ class Tree extends Entity {
             }
         }
     }
+    static fromJSON({
+        x,
+        y,
+        z,
+        rotation
+    }) {
+        return new Tree({
+            x,
+            y,
+            z,
+            rotation,
+            scene: mainScene,
+            model: mainScene.treeModel
+        })
+    }
 }

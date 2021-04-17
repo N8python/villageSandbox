@@ -12,6 +12,16 @@ class Tile {
         this.width = 1;
         this.height = 1;
         this.cost = 1;
+        this.rotation = 0;
+    }
+    toJSON() {
+        return {
+            x: this.x,
+            y: this.y,
+            z: this.z,
+            rotation: this.rotation,
+            type: this.constructor.name
+        }
     }
     contains(x, z) {
         return x >= this.x && x < this.x + this.height && z >= this.z && z < this.z + this.width;

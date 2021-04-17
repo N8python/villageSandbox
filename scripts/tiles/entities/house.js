@@ -39,4 +39,19 @@ class House extends Entity {
         this.mesh.scale.set(1, 1, 1);
         this.scene.third.add.existing(this.mesh);
     }
+    static fromJSON({
+        x,
+        y,
+        z,
+        rotation
+    }) {
+        return new House({
+            x,
+            y,
+            z,
+            rotation,
+            scene: mainScene,
+            model: mainScene.houseModel
+        })
+    }
 }

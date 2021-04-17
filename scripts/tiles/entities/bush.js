@@ -26,4 +26,19 @@ class Bush extends Entity {
         //this.mesh.children[0].material = new THREE.MeshPhongMaterial({ color: 0x006400 })
         this.scene.third.add.existing(this.mesh);
     }
+    static fromJSON({
+        x,
+        y,
+        z,
+        rotation
+    }) {
+        return new Bush({
+            x,
+            y,
+            z,
+            rotation,
+            scene: mainScene,
+            model: mainScene.bushModel
+        })
+    }
 }

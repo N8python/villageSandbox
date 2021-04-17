@@ -24,4 +24,19 @@ class Rocks extends Entity {
         this.mesh.scale.set(0.01, 0.01, 0.01);
         this.scene.third.add.existing(this.mesh);
     }
+    static fromJSON({
+        x,
+        y,
+        z,
+        rotation
+    }) {
+        return new Rocks({
+            x,
+            y,
+            z,
+            rotation,
+            scene: mainScene,
+            model: mainScene.rockModel
+        })
+    }
 }

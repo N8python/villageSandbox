@@ -44,6 +44,7 @@ class MainScene extends Scene3D {
         this.third.load.preload("chest", "./assets/models/chest.fbx");
         this.third.load.preload("workbench", "./assets/models/workbench.fbx");
         this.third.load.preload("handaxe", "./assets/models/handaxe.fbx");
+        this.third.load.preload("pickaxe", "./assets/models/pickaxe.fbx");
         this.treeModel = await this.third.load.fbx("tree");
         this.grassModel = await this.third.load.fbx("grass");
         this.bushModel = await this.third.load.fbx("bush");
@@ -54,11 +55,15 @@ class MainScene extends Scene3D {
         this.chestModel = await this.third.load.fbx("chest");
         this.workbenchModel = await this.third.load.fbx("workbench");
         this.mainWorld = new World();
-        World.generateWorld(this.mainWorld, {
-            scene: this,
-            seed: 20
-        });
         mainScene = this;
+        if (localProxy.scene) {
+            World.generateWorldFromJSON(this.mainWorld, localProxy.scene);
+        } else {
+            World.generateWorld(this.mainWorld, {
+                scene: this,
+                seed: 20
+            });
+        }
         selectedMesh = this.third.add.box({ x: 1000, y: 1000, z: 1000 }, { phong: { color: "orange", opacity: 0.5, transparent: true } });
         selectedMesh.castShadow = false;
         selectedMesh.recieveShadow = false;
@@ -90,6 +95,9 @@ class MainScene extends Scene3D {
         this.hemisphereLight = hemisphereLight;
         this.ambientLight = ambientLight;
         this.sunAngle = 0;
+        if (localProxy.scene) {
+            this.sunAngle = localProxy.scene.sunAngle;
+        }
         this.initiated = true;
         /*testPath = Pathfind.findPath({ world: mainScene.mainWorld, start: { x: -16, z: -16 }, end: { x: 15, z: 15 } });*/
         //testCircle = this.third.add.sphere({ x: -16, y: 1, z: -16, radius: 0.5 }, { phong: { color: 'red' } })
@@ -126,6 +134,12 @@ class MainScene extends Scene3D {
         }
         if (selected) {
             displayInfoFor(selected);
+        }
+    }
+    toJSON() {
+        return {
+            world: this.mainWorld.toJSON(),
+            sunAngle: this.sunAngle
         }
     }
 }

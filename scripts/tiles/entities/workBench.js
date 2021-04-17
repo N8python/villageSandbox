@@ -58,6 +58,21 @@ class WorkBench extends Entity {
             })
         }
     }
+    static fromJSON({
+        x,
+        y,
+        z,
+        rotation
+    }) {
+        return new WorkBench({
+            x,
+            y,
+            z,
+            rotation,
+            scene: mainScene,
+            model: mainScene.workbenchModel
+        })
+    }
 }
 const craftingMenu = (node, recipes, chest) => {
     node.innerHTML = "";
@@ -124,6 +139,7 @@ const craftingMenu = (node, recipes, chest) => {
                 craftButton.setAttribute("disabled", "true");
             }
         }, 500);
+        node.appendChild(document.createElement("br"));
         node.appendChild(document.createElement("br"));
     })
 }

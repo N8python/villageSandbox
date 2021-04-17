@@ -25,4 +25,19 @@ class GrassBlades extends Entity {
         this.mesh.scale.set(0.0025, 0.0025, 0.0025);
         this.scene.third.add.existing(this.mesh);
     }
+    static fromJSON({
+        x,
+        y,
+        z,
+        rotation
+    }) {
+        return new GrassBlades({
+            x,
+            y,
+            z,
+            rotation,
+            scene: mainScene,
+            model: mainScene.grassModel
+        })
+    }
 }

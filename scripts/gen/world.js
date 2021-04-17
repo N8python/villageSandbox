@@ -169,7 +169,35 @@ class World {
                     }
                 });
             }
-        })
+        });
+    }
+    static generateWorldFromJSON(world, json) {
+        json.world.tiles.forEach(tile => {
+            const t = typeToConstructor[tile.type].fromJSON(tile);
+            t.init();
+            world.tiles.push(t);
+        });
+        json.world.agents.forEach(agent => {
+            const a = typeToConstructor[agent.type].fromJSON(agent);
+            a.init();
+            world.agents.push(a);
+        });
+        world.tiles.forEach(tile => {
+            tile.mesh.traverse(child => {
+                if (child.isMesh) {
+                    child.castShadow = true;
+                    child.receiveShadow = true;
+                }
+            });
+            if (!(tile instanceof Entity)) {
+                tile.mesh.traverse(child => {
+                    if (child.isMesh) {
+                        child.castShadow = false;
+                        child.receiveShadow = true;
+                    }
+                });
+            }
+        });
     }
     update() {
         this.agents.forEach(agent => {
@@ -180,5 +208,11 @@ class World {
                 tile.update();
             }
         })
+    }
+    toJSON() {
+        return {
+            tiles: this.tiles.map(tile => tile.toJSON()),
+            agents: this.agents.map(agent => agent.toJSON())
+        }
     }
 }

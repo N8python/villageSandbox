@@ -45,7 +45,7 @@ const tasks = [{
         color: "black"
     }, {
         type: "dropdown",
-        values: ["Handaxe"]
+        values: ["Handaxe", "Pickaxe"]
     }, {
         type: "text",
         value: "from chest",
@@ -67,6 +67,22 @@ const tasks = [{
         value: "times",
         color: "black"
     }]
+}, {
+    name: "mineRocks",
+    color: "rgb(150, 255, 150)",
+    display: [{
+        type: "text",
+        value: "Mine Rocks",
+        color: "black"
+    }, {
+        type: "range",
+        min: 1,
+        max: 5
+    }, {
+        type: "text",
+        value: "times",
+        color: "black"
+    }]
 }];
 const taskDisplayFuncs = {
     "gather": (item, amount, kind) => {
@@ -77,5 +93,8 @@ const taskDisplayFuncs = {
     },
     "chopWood": (amount) => {
         return `Chop Wood ${amount} times`
+    },
+    "mineRocks": (amount) => {
+        return `Mine Rocks ${amount} times`
     }
 }

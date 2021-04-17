@@ -24,6 +24,51 @@ class Agent {
         this.state = { type: "idle", memory: {} };
         this.initiated = false;
     }
+    makeJSONSafe(obj) {
+        const clone = {};
+        Object.keys(obj).forEach(key => {
+            clone[key] = obj[key] && obj[key].toJSON ? obj[key].toJSON() : obj[key];
+        })
+        return clone;
+    }
+    jsonObjToRef(obj) {
+        const clone = {};
+        Object.keys(obj).forEach(key => {
+            clone[key] = obj[key];
+            if (typeof obj[key] === "object" && obj[key] !== null && obj[key].x !== undefined && obj[key].y !== undefined && obj[key].z !== undefined && obj[key].rotation !== undefined && obj[key].type !== undefined) {
+                const tile = mainScene.mainWorld.tiles.find(tile => tile.x === obj[key].x && tile.y === obj[key].y && tile.z === obj[key].z && tile.rotation === obj[key].rotation && tile instanceof typeToConstructor[obj[key].type]);
+                clone[key] = tile;
+            }
+        })
+        return clone;
+    }
+    toJSON() {
+        return {
+            x: this.x,
+            y: this.y,
+            z: this.z,
+            rotation: this.rotation,
+            targetRotation: this.targetRotation,
+            memory: this.makeJSONSafe(this.memory),
+            goal: this.makeJSONSafe(this.goal),
+            state: this.makeJSONSafe(this.state),
+            type: "Agent"
+        }
+    }
+    static fromJSON(json) {
+        const a = new Agent({
+            x: json.x,
+            y: json.y,
+            z: json.z,
+            scene: mainScene,
+        });
+        a.rotation = json.rotation;
+        a.targetRotation = json.targetRotation;
+        a.memory = a.jsonObjToRef(json.memory);
+        a.goal = {...a.jsonObjToRef(json.goal), memory: a.jsonObjToRef(json.goal.memory) };
+        a.state = {...a.jsonObjToRef(json.state), memory: a.jsonObjToRef(json.state.memory) };
+        return a;
+    }
     update() {
         if (this.memory.handItem && document.getElementById("handItem")) {
             document.getElementById("handItem").innerHTML = `<img src="assets/images/items/${this.memory.handItem.type}.png" style="width:32px">`;
@@ -35,6 +80,14 @@ class Agent {
             if (this.memory.handItem) {
                 if (this.memory.handItem.type === "handaxe") {
                     this.models.handaxeModel.visible = true;
+                }
+            }
+        }
+        if (this.models.pickaxeModel) {
+            this.models.pickaxeModel.visible = false;
+            if (this.memory.handItem) {
+                if (this.memory.handItem.type === "pickaxe") {
+                    this.models.pickaxeModel.visible = true;
                 }
             }
         }
@@ -122,6 +175,9 @@ class Agent {
                     if (this.memory.tasks.length > 0 && this.memory.tasks[0].name === "equipItem") {
                         const itemType = this.memory.tasks[0].parameters[0].toLowerCase();
                         if (this.memory.chest.amountInInventory(itemType) > 0) {
+                            if (this.memory.handItem.type) {
+                                this.memory.chest.addToInventory(this.memory.handItem.type, 1);
+                            }
                             this.memory.handItem = { type: itemType, amount: 1 };
                             this.memory.chest.addToInventory(itemType, -1);
                         }
@@ -152,6 +208,9 @@ class Agent {
                 if (this.goal.type === "chopWood") {
                     this.state = { type: "chop", memory: {} };
                 }
+                if (this.goal.type === "mineRocks") {
+                    this.state = { type: "mine", memory: {} };
+                }
             }
         }
         if (this.state.type === "gather") {
@@ -164,6 +223,12 @@ class Agent {
             if (this.mesh.animation.current !== "chop") {
                 this.targetRotation = Math.atan2(this.goal.memory.targetTile.x - this.x, this.goal.memory.targetTile.z - this.z);
                 this.mesh.animation.play("chop");
+            }
+        }
+        if (this.state.type === "mine") {
+            if (this.mesh.animation.current !== "mine") {
+                this.targetRotation = Math.atan2(this.goal.memory.targetTile.x - this.x, this.goal.memory.targetTile.z - this.z);
+                this.mesh.animation.play("mine");
             }
         }
         if (this.goal.type === "wander") {
@@ -205,6 +270,10 @@ class Agent {
                 if (this.memory.tasks[0].name === "chopWood" && !this.memory.tasks[0].doing) {
                     this.memory.tasks[0].doing = true;
                     this.goal = { type: "chopWood", memory: { times: this.memory.tasks[0].parameters[0] } };
+                }
+                if (this.memory.tasks[0].name === "mineRocks" && !this.memory.tasks[0].doing) {
+                    this.memory.tasks[0].doing = true;
+                    this.goal = { type: "mineRocks", memory: { times: this.memory.tasks[0].parameters[0] } };
                 }
                 if (this.memory.tasks[0].name === "gather" && !this.memory.tasks[0].doing) {
                     this.memory.tasks[0].doing = true;
@@ -295,6 +364,25 @@ class Agent {
                     this.state.memory.path = path;
                 } else {
                     if (this.memory.tasks.length > 0 && this.memory.tasks[0].name === "chopWood") {
+                        this.memory.tasks.shift();
+                        if (document.getElementById("taskList")) {
+                            this.generateTaskList(document.getElementById("taskList"));
+                        }
+                    }
+                    this.goal = { type: "wander", memory: {} };
+                }
+            }
+        }
+        if (this.goal.type === "mineRocks") {
+            if (!this.goal.memory.startedGathering) {
+                this.goal.memory.startedGathering = true;
+                const { chosen, path } = this.findPathToNearest(Rocks);
+                this.goal.memory.targetTile = chosen;
+                if (path.length > 0 && this.memory.handItem && this.memory.handItem.type === "pickaxe") {
+                    this.state = { type: "followPath", memory: {} };
+                    this.state.memory.path = path;
+                } else {
+                    if (this.memory.tasks.length > 0 && this.memory.tasks[0].name === "mineRocks") {
                         this.memory.tasks.shift();
                         if (document.getElementById("taskList")) {
                             this.generateTaskList(document.getElementById("taskList"));
@@ -478,15 +566,20 @@ class Agent {
     async init() {
         const model = await this.scene.third.load.fbx("robot");
         const handaxeModel = await this.scene.third.load.fbx("handaxe");
+        const pickaxeModel = await this.scene.third.load.fbx("pickaxe");
         handaxeModel.scale.set(200, 200, 200);
         handaxeModel.castShadow = true;
         this.models.handaxeModel = handaxeModel;
+        pickaxeModel.scale.set(150, 150, 150);
+        pickaxeModel.castShadow = true;
+        this.models.pickaxeModel = pickaxeModel;
         let added = false;
         model.traverse(child => {
                 if (child.name === 'mixamorigRightHand' && !added) {
                     //console.log("YAY")
                     //child.add(this.scene.third.add.box({ width: 20, height: 20, depth: 20 }));
                     child.add(handaxeModel);
+                    child.add(pickaxeModel);
                     //alert("YAY")
                     added = true;
                 }
@@ -499,12 +592,12 @@ class Agent {
         this.mesh.scale.set(0.005, 0.005, 0.005);
         //this.mesh.children[0].material = new THREE.MeshPhongMaterial({ color: 0x006400 })
         this.scene.third.add.existing(this.mesh);
-        /*this.scene.third.load.fbx(`./assets/characters/robot/Stable Sword Outward Slash (1).fbx`).then(object => {
+        /*this.scene.third.load.fbx(`./assets/characters/robot/Heavy Weapon Swing.fbx`).then(object => {
             console.log(JSON.stringify(object.animations[0]));
         });*/
 
         this.scene.third.animationMixers.add(this.mesh.animationMixer);
-        const animsToLoad = ["idle", "walk", "gather", "chop"];
+        const animsToLoad = ["idle", "walk", "gather", "chop", "mine"];
         for (const anim of animsToLoad) {
             const animText = await fetch(`./assets/characters/robot/animations/${anim}.json`);
             const animJson = await animText.json();
@@ -603,6 +696,53 @@ class Agent {
                     }
                 }
             }
+            if (e.action.getClip().animName === "mine") {
+                if (this.goal.type === "mineRocks") {
+                    /*this.scene.third.physics.add.existing(this.goal.memory.targetTile.mesh, {
+                        shape: 'compound',
+                        compound: [
+                            { shape: 'box', width: 0.1, height: 2.5, depth: 0.1, y: 1.25 },
+                            { shape: "sphere", radius: 1, y: 2.75, mass: 100 }
+                        ],
+                        addChildren: false
+                    });*/
+                    this.goal.memory.targetTile.mesh.visible = false;
+                    this.scene.mainWorld.tiles.splice(this.scene.mainWorld.tiles.indexOf(this.goal.memory.targetTile), 1);
+                    this.scene.third.scene.children.splice(this.scene.third.scene.children.indexOf(this.goal.memory.targetTile.mesh), 1);
+                    const lootTable = Agent.classToGather[this.goal.memory.targetTile.constructor.name];
+                    lootTable.forEach(item => {
+                            const amount = Math.round(Math.random() * (item.max - item.min) + item.min);
+                            this.addToInventory(item.type, amount * 2);
+                        })
+                        /*setTimeout(() => {
+                            this.scene.third.physics.destroy(tt.mesh);
+                            this.scene.third.scene.children.splice(this.scene.third.scene.children.indexOf(tt.mesh), 1);
+                        }, 5000)*/
+                        /*setInterval(() => {
+                            console.log(tt.mesh.body);
+                        })*/
+                        //console.log(this.goal.memory.times, this.memory.tasks[0].parameters[0])
+                    this.goal.memory.times--;
+                    if (this.memory.tasks.length > 0 && this.memory.tasks[0].name === "chopWood") {
+                        this.memory.tasks[0].parameters[0]--;
+                    }
+                    if (document.getElementById("taskList")) {
+                        this.generateTaskList(document.getElementById("taskList"));
+                    }
+                    if (this.goal.memory.times > 0) {
+                        this.goal.memory.startedGathering = false;
+                    } else {
+                        if (this.memory.tasks.length > 0 && this.memory.tasks[0].name === "mineRocks") {
+                            this.memory.tasks.shift();
+                            if (document.getElementById("taskList")) {
+                                this.generateTaskList(document.getElementById("taskList"));
+                            }
+                        }
+                        this.goal = { type: "wander", memory: {} };
+                        this.state = { type: "idle", memory: {} };
+                    }
+                }
+            }
         });
         this.initiated = true;
         //this.mesh.animation.play("walk");
@@ -618,7 +758,9 @@ Agent.displayName = {
     "storeInventory": "Store Inventory",
     "equipItem": "Equip Item",
     "chopWood": "Chop Wood",
-    "chop": "Chop"
+    "chop": "Chop",
+    "mineRocks": "Mine Rocks",
+    "mine": "Mine"
 }
 Agent.classToGather = {
     GrassBlades: [{

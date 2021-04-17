@@ -79,4 +79,27 @@ class Chest extends Entity {
         this.mesh.scale.set(0.01, 0.01, 0.01);
         this.scene.third.add.existing(this.mesh);
     }
+    toJSON() {
+        const json = super.toJSON();
+        json.inventory = this.inventory;
+        return json;
+    }
+    static fromJSON({
+        x,
+        y,
+        z,
+        inventory,
+        rotation
+    }) {
+        const chest = new Chest({
+            x,
+            y,
+            z,
+            rotation,
+            scene: mainScene,
+            model: mainScene.chestModel
+        });
+        chest.inventory = inventory;
+        return chest;
+    }
 }

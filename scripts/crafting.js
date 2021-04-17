@@ -13,4 +13,19 @@ const craftingRecipes = [{
         type: "handaxe",
         amount: 1
     }]
+}, {
+    inputs: [{
+        type: "wood",
+        amount: 3
+    }, {
+        type: "rocks",
+        amount: 5
+    }, {
+        type: "grass",
+        amount: 5
+    }],
+    outputs: [{
+        type: "pickaxe",
+        amount: 1
+    }]
 }]
