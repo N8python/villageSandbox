@@ -38,6 +38,8 @@ class MainScene extends Scene3D {
         this.third.load.preload("grass", "./assets/models/grass.fbx");
         this.third.load.preload("bush", "./assets/models/bush.fbx");
         this.third.load.preload("rocks", "./assets/models/rocks.fbx");
+        this.third.load.preload("copperOre", "./assets/models/copperOre.fbx");
+        this.third.load.preload("ironOre", "./assets/models/ironOre.fbx");
         this.third.load.preload("seashell", "./assets/models/seashell.fbx");
         this.third.load.preload("house", "./assets/models/house.fbx");
         this.third.load.preload("robot", "./assets/characters/robot/model.fbx");
@@ -49,6 +51,8 @@ class MainScene extends Scene3D {
         this.grassModel = await this.third.load.fbx("grass");
         this.bushModel = await this.third.load.fbx("bush");
         this.rockModel = await this.third.load.fbx("rocks");
+        this.copperoreModel = await this.third.load.fbx("copperOre");
+        this.ironoreModel = await this.third.load.fbx("ironOre");
         this.seashellModel = await this.third.load.fbx("seashell");
         this.houseModel = await this.third.load.fbx("house");
         this.agentModel = await this.third.load.fbx("robot");

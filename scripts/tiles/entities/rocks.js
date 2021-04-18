@@ -5,7 +5,8 @@ class Rocks extends Entity {
         z,
         scene,
         model,
-        rotation
+        rotation,
+        kind = "stone"
     }) {
         super({
             x,
@@ -15,6 +16,12 @@ class Rocks extends Entity {
         });
         this.model = model;
         this.rotation = rotation;
+        this.kind = kind;
+        if (this.kind === "copperOre") {
+            this.model = this.scene.copperoreModel;
+        } else if (this.kind === "ironOre") {
+            this.model = this.scene.ironoreModel;
+        }
     }
     init() {
         this.mesh = new ExtendedObject3D();
@@ -24,11 +31,17 @@ class Rocks extends Entity {
         this.mesh.scale.set(0.01, 0.01, 0.01);
         this.scene.third.add.existing(this.mesh);
     }
+    toJSON() {
+        const json = super.toJSON();
+        json.kind = this.kind;
+        return json;
+    }
     static fromJSON({
         x,
         y,
         z,
-        rotation
+        rotation,
+        kind = "stone"
     }) {
         return new Rocks({
             x,
@@ -36,7 +49,8 @@ class Rocks extends Entity {
             z,
             rotation,
             scene: mainScene,
-            model: mainScene.rockModel
+            model: mainScene.rockModel,
+            kind
         })
     }
 }

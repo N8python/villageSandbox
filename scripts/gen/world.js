@@ -207,6 +207,9 @@ class World {
             if (tile.update) {
                 tile.update();
             }
+            if (Math.random() < tile.spawnChance) {
+                tile.spawn(this);
+            }
         })
     }
     toJSON() {

@@ -13,6 +13,7 @@ class Tile {
         this.height = 1;
         this.cost = 1;
         this.rotation = 0;
+        this.spawnChance = 0;
     }
     toJSON() {
         return {

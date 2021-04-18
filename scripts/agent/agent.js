@@ -370,6 +370,7 @@ class Agent {
                         }
                     }
                     this.goal = { type: "wander", memory: {} };
+                    this.state = { type: "idle", memory: {} };
                 }
             }
         }
@@ -389,6 +390,7 @@ class Agent {
                         }
                     }
                     this.goal = { type: "wander", memory: {} };
+                    this.state = { type: "idle", memory: {} };
                 }
             }
         }
@@ -519,27 +521,34 @@ class Agent {
     }
     findPathToNearest(clazz) {
         const targetTiles = this.scene.mainWorld.tiles.filter(tile => tile instanceof clazz && !tile.ignorePathfinding);
-        let chosen;
-        let minDist = Infinity;
-        targetTiles.forEach(tile => {
-            if (Math.hypot(tile.x - this.x, tile.z - this.z) < minDist) {
-                chosen = tile;
-                minDist = Math.hypot(tile.x - this.x, tile.z - this.z);
-            }
-        })
-        if (chosen) {
-            const entrance = chosen.entrance({ x: this.x, z: this.z });
-            if (entrance === undefined) {
+        let chosens = targetTiles.sort((a, b) => Math.hypot(a.x - this.x, a.z - this.z) - Math.hypot(b.x - this.x, b.z - this.z)).slice(0, 5);
+        if (chosens.length > 0) {
+            let chosenPath;
+            let c;
+            let bestPathLength = Infinity;
+            chosens.forEach(chosen => {
+                const entrance = chosen.entrance({ x: this.x, z: this.z });
+                if (entrance === undefined) {
+                    return;
+                }
+                const path = Pathfind.findPath({ world: this.scene.mainWorld, start: { x: Math.round(this.x), z: Math.round(this.z) }, end: entrance });
+                if (path.length < bestPathLength) {
+                    bestPathLength = path.length;
+                    chosenPath = path;
+                    c = chosen;
+                }
+            });
+            if (chosenPath === undefined) {
                 return {
                     chosen: undefined,
                     path: []
                 };
+            } else {
+                return {
+                    chosen: c,
+                    path: chosenPath
+                };
             }
-            const path = Pathfind.findPath({ world: this.scene.mainWorld, start: { x: Math.round(this.x), z: Math.round(this.z) }, end: entrance });
-            return {
-                chosen,
-                path
-            };
         }
         return {
             chosen: undefined,
@@ -706,24 +715,30 @@ class Agent {
                         ],
                         addChildren: false
                     });*/
+                    if (this.goal.memory.targetTile.kind === "ironOre") {
+                        this.addToInventory("iron", 1);
+                    }
+                    if (this.goal.memory.targetTile.kind === "copperOre") {
+                        this.addToInventory("copper", 1);
+                    }
                     this.goal.memory.targetTile.mesh.visible = false;
                     this.scene.mainWorld.tiles.splice(this.scene.mainWorld.tiles.indexOf(this.goal.memory.targetTile), 1);
                     this.scene.third.scene.children.splice(this.scene.third.scene.children.indexOf(this.goal.memory.targetTile.mesh), 1);
                     const lootTable = Agent.classToGather[this.goal.memory.targetTile.constructor.name];
                     lootTable.forEach(item => {
-                            const amount = Math.round(Math.random() * (item.max - item.min) + item.min);
-                            this.addToInventory(item.type, amount * 2);
-                        })
-                        /*setTimeout(() => {
-                            this.scene.third.physics.destroy(tt.mesh);
-                            this.scene.third.scene.children.splice(this.scene.third.scene.children.indexOf(tt.mesh), 1);
-                        }, 5000)*/
-                        /*setInterval(() => {
-                            console.log(tt.mesh.body);
-                        })*/
-                        //console.log(this.goal.memory.times, this.memory.tasks[0].parameters[0])
+                        const amount = Math.round(Math.random() * (item.max - item.min) + item.min);
+                        this.addToInventory(item.type, amount * 2);
+                    });
+                    /*setTimeout(() => {
+                        this.scene.third.physics.destroy(tt.mesh);
+                        this.scene.third.scene.children.splice(this.scene.third.scene.children.indexOf(tt.mesh), 1);
+                    }, 5000)*/
+                    /*setInterval(() => {
+                        console.log(tt.mesh.body);
+                    })*/
+                    //console.log(this.goal.memory.times, this.memory.tasks[0].parameters[0])
                     this.goal.memory.times--;
-                    if (this.memory.tasks.length > 0 && this.memory.tasks[0].name === "chopWood") {
+                    if (this.memory.tasks.length > 0 && this.memory.tasks[0].name === "mineRocks") {
                         this.memory.tasks[0].parameters[0]--;
                     }
                     if (document.getElementById("taskList")) {

@@ -13,6 +13,9 @@ const Pathfind = {
         start,
         end
     }) {
+        if (start.x === end.x && start.z === end.z) {
+            return [{ x: start.x, z: start.z }];
+        }
         const frontier = new TinyQueue([{ x: start.x, z: start.z, cost: 0 }], function(a, b) {
             return b.cost - a.cost;
         });
@@ -50,12 +53,17 @@ const Pathfind = {
             z: end.z
         };
         const path = [];
-        while (pos(current) !== pos(start)) {
+        let iterationsBack = 0;
+        while (pos(current) !== pos(start) && iterationsBack < 1000) {
             path.push({
                 x: current.x,
                 z: current.z
             });
             current = cameFrom[pos(current)];
+            iterationsBack++;
+        }
+        if (iterationsBack >= 1000) {
+            return [];
         }
         path.reverse();
         return path;
