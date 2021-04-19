@@ -413,6 +413,8 @@ class Agent {
     makeGui(rootNode) {
         rootNode.innerHTML = `
         <div style="border: 2px solid black;padding: 4px;width:60%;">
+            <div id="talk">
+            </div>
             <h3 style="color:#ecddba">Task Manager:</h3>
             <div id="tasks">
             </div>
@@ -427,6 +429,12 @@ class Agent {
             </div>
         </div>
         `
+        const talkButton = document.createElement("button");
+        talkButton.innerHTML = "Talk";
+        talkButton.onclick = () => {
+            displayRobotText(genSentence("idle"));
+        }
+        document.getElementById("talk").appendChild(talkButton);
         const taskDivs = [];
         tasks.forEach(task => {
             const taskDiv = document.createElement('div');
@@ -719,6 +727,12 @@ class Agent {
                         this.addToInventory("iron", 1);
                     }
                     if (this.goal.memory.targetTile.kind === "copperOre") {
+                        this.addToInventory("copper", 1);
+                    }
+                    if (Math.random() < 0.1) {
+                        this.addToInventory("iron", 1);
+                    }
+                    if (Math.random() < 0.25) {
                         this.addToInventory("copper", 1);
                     }
                     this.goal.memory.targetTile.mesh.visible = false;

@@ -25,6 +25,9 @@ class Water extends Tile {
         this.mesh.body.setCollisionFlags(2);
     }
     spawn(world) {
+        if (mainScene.mainWorld.tiles.filter(x => x instanceof Seashell).length > 20) {
+            return;
+        }
         const sandTiles = world.tiles.filter(tile => Math.hypot(this.x - tile.x, this.z - tile.z) <= 1 && tile instanceof Sand);
         if (sandTiles.length > 0) {
             const chosenTile = sandTiles[Math.floor(sandTiles.length * Math.random())];

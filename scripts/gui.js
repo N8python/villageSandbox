@@ -36,3 +36,17 @@ const verticalInventory = (inventory) => {
     }
     return invHTML;
 }
+const robotDiv = document.getElementById("robotDiv");
+const robotTyper = new Typewriter('#robotSpeech', {
+    delay: 20
+});
+robotDiv.style.display = "none";
+const displayRobotText = (str) => {
+    robotDiv.style.display = "block";
+    robotDiv.style.innerHTML = "";
+    robotTyper.deleteAll(1).typeString(str).start();
+}
+document.getElementById("okCool").onclick = () => {
+    robotDiv.style.display = "none";
+    robotTyper.deleteAll(1).start();
+}

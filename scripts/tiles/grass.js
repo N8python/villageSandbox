@@ -22,6 +22,9 @@ class Grass extends Tile {
         if (tiles.length === 0) {
             let seed = Math.random();
             if (seed < 0.65) {
+                if (mainScene.mainWorld.tiles.filter(x => x instanceof GrassBlades).length > 50) {
+                    return;
+                }
                 const theBlades = new GrassBlades({
                     x: this.x,
                     z: this.z,
@@ -32,6 +35,9 @@ class Grass extends Tile {
                 theBlades.init();
                 world.tiles.push(theBlades);
             } else if (seed < 0.85) {
+                if (mainScene.mainWorld.tiles.filter(x => x instanceof Bush).length > 35) {
+                    return;
+                }
                 const theBush = new Bush({
                     x: this.x,
                     z: this.z,
@@ -42,6 +48,9 @@ class Grass extends Tile {
                 theBush.init();
                 world.tiles.push(theBush);
             } else {
+                if (mainScene.mainWorld.tiles.filter(x => x instanceof Tree).length > 25) {
+                    return;
+                }
                 const theTree = new Tree({
                     x: this.x,
                     z: this.z,

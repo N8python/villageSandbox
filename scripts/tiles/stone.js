@@ -19,11 +19,14 @@ class Stone extends Tile {
         this.mesh.body.setCollisionFlags(2);
     }
     spawn(world) {
+        if (mainScene.mainWorld.tiles.filter(x => x instanceof Rocks).length > 35) {
+            return;
+        }
         const tiles = world.tiles.filter(tile => tile.contains(this.x, this.z) && tile !== this);
         if (tiles.length === 0) {
             let seed = Math.random();
             let kind = "stone";
-            if (seed < 0.25) {
+            if (seed < 0.35) {
                 kind = "copperOre";
             }
             if (seed < 0.1) {
