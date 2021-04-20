@@ -91,6 +91,38 @@ class Agent {
                 }
             }
         }
+        if (this.models.copperAxeModel) {
+            this.models.copperAxeModel.visible = false;
+            if (this.memory.handItem) {
+                if (this.memory.handItem.type === "copperAxe") {
+                    this.models.copperAxeModel.visible = true;
+                }
+            }
+        }
+        if (this.models.ironAxeModel) {
+            this.models.ironAxeModel.visible = false;
+            if (this.memory.handItem) {
+                if (this.memory.handItem.type === "ironAxe") {
+                    this.models.ironAxeModel.visible = true;
+                }
+            }
+        }
+        if (this.models.copperPickaxeModel) {
+            this.models.copperPickaxeModel.visible = false;
+            if (this.memory.handItem) {
+                if (this.memory.handItem.type === "copperPickaxe") {
+                    this.models.copperPickaxeModel.visible = true;
+                }
+            }
+        }
+        if (this.models.ironPickaxeModel) {
+            this.models.ironPickaxeModel.visible = false;
+            if (this.memory.handItem) {
+                if (this.memory.handItem.type === "ironPickaxe") {
+                    this.models.ironPickaxeModel.visible = true;
+                }
+            }
+        }
         if (!this.initiated) {
             return;
         }
@@ -173,7 +205,14 @@ class Agent {
                 if (this.goal.type === "equipItem") {
                     this.targetRotation = Math.atan2(this.memory.chest.x - this.x, this.memory.chest.z - this.z);
                     if (this.memory.tasks.length > 0 && this.memory.tasks[0].name === "equipItem") {
-                        const itemType = this.memory.tasks[0].parameters[0].toLowerCase();
+                        const itemType = ({
+                            "Handaxe": "handaxe",
+                            "Pickaxe": "pickaxe",
+                            "Copper Axe": "copperAxe",
+                            "Copper Pickaxe": "copperPickaxe",
+                            "Iron Axe": "ironAxe",
+                            "Iron Pickaxe": "ironPickaxe"
+                        })[this.memory.tasks[0].parameters[0]];
                         if (this.memory.chest.amountInInventory(itemType) > 0) {
                             if (this.memory.handItem.type) {
                                 this.memory.chest.addToInventory(this.memory.handItem.type, 1);
@@ -359,7 +398,7 @@ class Agent {
                 this.goal.memory.startedGathering = true;
                 const { chosen, path } = this.findPathToNearest(Tree);
                 this.goal.memory.targetTile = chosen;
-                if (path.length > 0 && this.memory.handItem && this.memory.handItem.type === "handaxe") {
+                if (path.length > 0 && this.memory.handItem && (this.memory.handItem.type === "handaxe" || this.memory.handItem.type === "copperAxe" || this.memory.handItem.type === "ironAxe")) {
                     this.state = { type: "followPath", memory: {} };
                     this.state.memory.path = path;
                 } else {
@@ -379,7 +418,7 @@ class Agent {
                 this.goal.memory.startedGathering = true;
                 const { chosen, path } = this.findPathToNearest(Rocks);
                 this.goal.memory.targetTile = chosen;
-                if (path.length > 0 && this.memory.handItem && this.memory.handItem.type === "pickaxe") {
+                if (path.length > 0 && this.memory.handItem && (this.memory.handItem.type === "pickaxe" || this.memory.handItem.type === "copperPickaxe" || this.memory.handItem.type === "ironPickaxe")) {
                     this.state = { type: "followPath", memory: {} };
                     this.state.memory.path = path;
                 } else {
@@ -584,12 +623,28 @@ class Agent {
         const model = await this.scene.third.load.fbx("robot");
         const handaxeModel = await this.scene.third.load.fbx("handaxe");
         const pickaxeModel = await this.scene.third.load.fbx("pickaxe");
+        const copperAxeModel = await this.scene.third.load.fbx("copperAxe");
+        const copperPickaxeModel = await this.scene.third.load.fbx("copperPickaxe");
+        const ironAxeModel = await this.scene.third.load.fbx("ironAxe");
+        const ironPickaxeModel = await this.scene.third.load.fbx("ironPickaxe");
         handaxeModel.scale.set(200, 200, 200);
         handaxeModel.castShadow = true;
         this.models.handaxeModel = handaxeModel;
+        copperAxeModel.scale.set(0.5, 0.5, 0.5);
+        copperAxeModel.castShadow = true;
+        this.models.copperAxeModel = copperAxeModel;
+        ironAxeModel.scale.set(0.5, 0.5, 0.5);
+        ironAxeModel.castShadow = true;
+        this.models.ironAxeModel = ironAxeModel;
         pickaxeModel.scale.set(150, 150, 150);
         pickaxeModel.castShadow = true;
         this.models.pickaxeModel = pickaxeModel;
+        copperPickaxeModel.scale.set(0.5, 0.5, 0.5);
+        copperPickaxeModel.castShadow = true;
+        this.models.copperPickaxeModel = copperPickaxeModel;
+        ironPickaxeModel.scale.set(0.5, 0.5, 0.5);
+        ironPickaxeModel.castShadow = true;
+        this.models.ironPickaxeModel = ironPickaxeModel;
         let added = false;
         model.traverse(child => {
                 if (child.name === 'mixamorigRightHand' && !added) {
@@ -597,6 +652,10 @@ class Agent {
                     //child.add(this.scene.third.add.box({ width: 20, height: 20, depth: 20 }));
                     child.add(handaxeModel);
                     child.add(pickaxeModel);
+                    child.add(copperAxeModel);
+                    child.add(copperPickaxeModel);
+                    child.add(ironAxeModel);
+                    child.add(ironPickaxeModel);
                     //alert("YAY")
                     added = true;
                 }
@@ -664,7 +723,14 @@ class Agent {
             }
             if (e.action.getClip().animName === "chop") {
                 if (this.goal.type === "chopWood") {
-                    if (Math.random() < 0.25) {
+                    let chance = 0.25;
+                    if (this.memory.handItem.type === "copperAxe") {
+                        chance = 0.35;
+                    }
+                    if (this.memory.handItem.type === "ironAxe") {
+                        chance = 0.5;
+                    }
+                    if (Math.random() < chance) {
                         /*this.scene.third.physics.add.existing(this.goal.memory.targetTile.mesh, {
                             shape: 'compound',
                             compound: [
@@ -675,7 +741,15 @@ class Agent {
                         });*/
                         const lootTable = Agent.classToGather[this.goal.memory.targetTile.constructor.name];
                         lootTable.forEach(item => {
-                            const amount = Math.round(Math.random() * (item.max - item.min) + item.min);
+                            let amount = Math.round(Math.random() * (item.max - item.min) + item.min);
+                            if (this.memory.handItem.type === "copperAxe") {
+                                amount *= 1.25;
+                                amount = Math.round(amount);
+                            }
+                            if (this.memory.handItem.type === "ironAxe") {
+                                amount *= 1.5;
+                                amount = Math.round(amount);
+                            }
                             this.addToInventory(item.type, amount);
                         })
                         let xNegativeOne = Math.random() * 2 - 1;
@@ -729,11 +803,20 @@ class Agent {
                     if (this.goal.memory.targetTile.kind === "copperOre") {
                         this.addToInventory("copper", 1);
                     }
-                    if (Math.random() < 0.1) {
-                        this.addToInventory("iron", 1);
+                    let iterations = 1;
+                    if (this.memory.handItem.type === "copperPickaxe") {
+                        iterations = 2;
                     }
-                    if (Math.random() < 0.25) {
-                        this.addToInventory("copper", 1);
+                    if (this.memory.handItem.type === "ironPickaxe") {
+                        iterations = 3;
+                    }
+                    for (let i = 0; i < iterations; i++) {
+                        if (Math.random() < 0.1) {
+                            this.addToInventory("iron", 1);
+                        }
+                        if (Math.random() < 0.25) {
+                            this.addToInventory("copper", 1);
+                        }
                     }
                     this.goal.memory.targetTile.mesh.visible = false;
                     this.scene.mainWorld.tiles.splice(this.scene.mainWorld.tiles.indexOf(this.goal.memory.targetTile), 1);

@@ -45,7 +45,7 @@ const tasks = [{
         color: "black"
     }, {
         type: "dropdown",
-        values: ["Handaxe", "Pickaxe"]
+        values: ["Handaxe", "Pickaxe", "Copper Axe", "Copper Pickaxe", "Iron Axe", "Iron Pickaxe"]
     }, {
         type: "text",
         value: "from chest",

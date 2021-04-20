@@ -47,6 +47,10 @@ class MainScene extends Scene3D {
         this.third.load.preload("workbench", "./assets/models/workbench.fbx");
         this.third.load.preload("handaxe", "./assets/models/handaxe.fbx");
         this.third.load.preload("pickaxe", "./assets/models/pickaxe.fbx");
+        this.third.load.preload("copperAxe", "./assets/models/copperAxe.fbx");
+        this.third.load.preload("copperPickaxe", "./assets/models/copperPickaxe.fbx");
+        this.third.load.preload("ironAxe", "./assets/models/ironAxe.fbx");
+        this.third.load.preload("ironPickaxe", "./assets/models/ironPickaxe.fbx");
         this.treeModel = await this.third.load.fbx("tree");
         this.grassModel = await this.third.load.fbx("grass");
         this.bushModel = await this.third.load.fbx("bush");
