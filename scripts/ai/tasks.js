@@ -83,6 +83,28 @@ const tasks = [{
         value: "times",
         color: "black"
     }]
+}, {
+    name: "eat",
+    color: "rgb(255, 175, 100)",
+    display: [{
+        type: "text",
+        value: "Eat",
+        color: "black"
+    }, {
+        type: "range",
+        min: 1,
+        max: 5
+    }, {
+        type: "dropdown",
+        values: ["Tubers"]
+    }, {
+        type: "text",
+        value: "from",
+        color: "black"
+    }, {
+        type: "dropdown",
+        values: ["inventory", "chest"]
+    }]
 }];
 const taskDisplayFuncs = {
     "gather": (item, amount, kind) => {
@@ -96,5 +118,8 @@ const taskDisplayFuncs = {
     },
     "mineRocks": (amount) => {
         return `Mine Rocks ${amount} times`
+    },
+    "eat": (times, food, source) => {
+        return `Eat ${food} ${times} times from ${source}`
     }
 }

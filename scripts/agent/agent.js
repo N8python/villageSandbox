@@ -15,6 +15,8 @@ class Agent {
             health: 100,
             physicalEnergy: 100,
             mentalEnergy: 100,
+            idleTicks: 0,
+            totalTicks: 0,
             tasks: [],
             inventory: [],
             handItem: null
@@ -70,6 +72,16 @@ class Agent {
         return a;
     }
     update() {
+        this.memory.health = Math.max(Math.min(this.memory.health, 100), 0);
+        this.memory.physicalEnergy = Math.max(Math.min(this.memory.physicalEnergy, 100), 0);
+        this.memory.mentalEnergy = Math.max(Math.min(this.memory.mentalEnergy, 100), 0);
+        this.memory.totalTicks++;
+        if (this.memory.totalTicks % 3600 === 0) {
+            if (this.memory.idleTicks / 3600 < 0.25) {
+                this.memory.mentalEnergy -= 2;
+            }
+            this.memory.idleTicks = 0;
+        }
         if (this.memory.handItem && document.getElementById("handItem")) {
             document.getElementById("handItem").innerHTML = `<img src="assets/images/items/${this.memory.handItem.type}.png" style="width:32px">`;
         } else if (document.getElementById("handItem")) {
@@ -146,6 +158,8 @@ class Agent {
         this.mesh.rotation.y = this.rotation;
         this.rotation += angleDifference(this.rotation, this.targetRotation) / 10;
         if (this.state.type === "idle") {
+            this.memory.physicalEnergy += 0.002;
+            this.memory.mentalEnergy += 0.001;
             if (this.mesh.animation.current !== "idle") {
                 this.mesh.animation.play("idle");
             }
@@ -183,7 +197,7 @@ class Agent {
                     this.x = this.state.memory.goal.x;
                     this.z = this.state.memory.goal.z;
                     this.state.memory.goal = undefined;
-                    if (Math.hypot(this.x - this.memory.home.x, this.z - this.memory.home.z) > 8 && this.scene.sunAngle < 0) {
+                    if (Math.hypot(this.x - this.memory.home.x, this.z - this.memory.home.z) > 8 && this.scene.sunAngle < 0 && this.goal.type !== "goHome") {
                         this.goal = { type: "goHome", memory: {} };
                         if (this.memory.tasks.length > 0) {
                             this.memory.tasks[0].doing = false;
@@ -226,6 +240,34 @@ class Agent {
                         }
                     }
                     this.goal = { type: "wander", memory: {} };
+                }
+                if (this.goal.type === "eat" && this.goal.memory.source === "chest") {
+                    const itemType = ({
+                        "Tubers": "tuber"
+                    })[this.goal.memory.itemType];
+                    const amount = Math.min(this.goal.memory.times, this.memory.chest.amountInInventory(itemType));
+                    if (amount > 0) {
+                        this.addToInventory(itemType, amount);
+                        this.memory.chest.addToInventory(itemType, -amount);
+                        this.eat(itemType, amount);
+                        if (this.memory.tasks.length > 0 && this.memory.tasks[0].name === "eat") {
+                            this.memory.tasks.shift();
+                            if (document.getElementById("taskList")) {
+                                this.generateTaskList(document.getElementById("taskList"));
+                            }
+                        }
+                        this.goal = { type: "wander", memory: {} };
+                        this.state = { type: "idle", memory: {} };
+                    } else {
+                        if (this.memory.tasks.length > 0 && this.memory.tasks[0].name === "eat") {
+                            this.memory.tasks.shift();
+                            if (document.getElementById("taskList")) {
+                                this.generateTaskList(document.getElementById("taskList"));
+                            }
+                        }
+                        this.goal = { type: "wander", memory: {} };
+                        this.state = { type: "idle", memory: {} };
+                    }
                 }
                 if (this.goal.type === "storeInventory") {
                     this.targetRotation = Math.atan2(this.memory.chest.x - this.x, this.memory.chest.z - this.z);
@@ -271,6 +313,9 @@ class Agent {
             }
         }
         if (this.goal.type === "wander") {
+            this.memory.physicalEnergy += 0.002;
+            this.memory.mentalEnergy += 0.001;
+            this.memory.idleTicks++;
             if (this.state.type === "gather") {
                 this.state = { type: "idle", memory: {} };
             }
@@ -317,6 +362,10 @@ class Agent {
                 if (this.memory.tasks[0].name === "gather" && !this.memory.tasks[0].doing) {
                     this.memory.tasks[0].doing = true;
                     this.goal = { type: "gather", memory: { itemType: this.memory.tasks[0].parameters[0], times: this.memory.tasks[0].parameters[1] } };
+                }
+                if (this.memory.tasks[0].name === "eat" && !this.memory.tasks[0].doing) {
+                    this.memory.tasks[0].doing = true;
+                    this.goal = { type: "eat", memory: { itemType: this.memory.tasks[0].parameters[1], times: this.memory.tasks[0].parameters[0], source: this.memory.tasks[0].parameters[2] } };
                 }
             }
         }
@@ -433,6 +482,38 @@ class Agent {
                 }
             }
         }
+        if (this.goal.type === "eat") {
+            if (this.goal.memory.source === "inventory") {
+                this.eat(({
+                    "Tubers": "tuber"
+                })[this.goal.memory.itemType], this.goal.memory.times);
+                if (this.memory.tasks.length > 0 && this.memory.tasks[0].name === "eat") {
+                    this.memory.tasks.shift();
+                    if (document.getElementById("taskList")) {
+                        this.generateTaskList(document.getElementById("taskList"));
+                    }
+                }
+                this.goal = { type: "wander", memory: {} };
+                this.state = { type: "idle", memory: {} };
+            } else if (this.goal.memory.source === "chest") {
+                if (!this.goal.memory.headingToChest) {
+                    this.goal.memory.headingToChest = true;
+                    const path = Pathfind.findPath({ world: this.scene.mainWorld, start: { x: Math.round(this.x), z: Math.round(this.z) }, end: this.memory.chest.entrance() });
+                    if (path.length > 0) {
+                        this.state = { type: "followPath", memory: {} };
+                        this.state.memory.path = path;
+                    } else {
+                        this.goal = { type: "wander", memory: {} };
+                        if (this.memory.tasks.length > 0 && this.memory.tasks[0].name === "storeInventory") {
+                            this.memory.tasks.shift();
+                            if (document.getElementById("taskList")) {
+                                this.generateTaskList(document.getElementById("taskList"));
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
     createBoundingBox(mesh) {
         mesh.position.x = this.x;
@@ -444,9 +525,9 @@ class Agent {
         return `
             Goal: ${Agent.displayName[this.goal.type]} <br>
             State: ${Agent.displayName[this.state.type]} <br>
-            Health: ${this.memory.health} / 100 <br>
-            Physical: ${this.memory.physicalEnergy} / 100 <br>
-            Mental: ${this.memory.mentalEnergy} / 100
+            Health: ${Math.round(this.memory.health)} / 100 <br>
+            Physical: ${Math.round(this.memory.physicalEnergy)} / 100 <br>
+            Mental: ${Math.round(this.memory.mentalEnergy)} / 100
         `
     }
     makeGui(rootNode) {
@@ -619,6 +700,25 @@ class Agent {
             document.getElementById("inventory").innerHTML = verticalInventory(this.memory.inventory);
         }
     }
+    amountInInventory(item) {
+        const itemSelected = this.memory.inventory.find(i => i.type === item);
+        if (itemSelected) {
+            return itemSelected.amount;
+        }
+        return 0;
+    }
+    eat(item, times) {
+        times = Math.min(times, this.amountInInventory(item));
+        this.addToInventory(item, -times);
+        for (let i = 0; i < times; i++) {
+            if (item === "tuber") {
+                this.memory.physicalEnergy += 1 + Math.random();
+                if (Math.random() < 0.25) {
+                    this.memory.mentalEnergy += 1 + Math.random();
+                }
+            }
+        }
+    }
     async init() {
         const model = await this.scene.third.load.fbx("robot");
         const handaxeModel = await this.scene.third.load.fbx("handaxe");
@@ -692,6 +792,7 @@ class Agent {
         this.mesh.animationMixer.addEventListener("loop", (e) => {
             if (e.action.getClip().animName === "gather") {
                 if (this.goal.type === "gather") {
+                    this.memory.physicalEnergy -= 0.5;
                     this.goal.memory.targetTile.mesh.visible = false;
                     this.scene.mainWorld.tiles.splice(this.scene.mainWorld.tiles.indexOf(this.goal.memory.targetTile), 1);
                     this.scene.third.scene.children.splice(this.scene.third.scene.children.indexOf(this.goal.memory.targetTile.mesh), 1);
@@ -700,6 +801,11 @@ class Agent {
                         const amount = Math.round(Math.random() * (item.max - item.min) + item.min);
                         this.addToInventory(item.type, amount);
                     })
+                    if (this.goal.memory.targetTile.constructor.name === "GrassBlades") {
+                        if (Math.random() < 0.25) {
+                            this.addToInventory("tuber", 1);
+                        }
+                    }
                     this.goal.memory.times--;
                     if (this.memory.tasks.length > 0 && this.memory.tasks[0].name === "gather") {
                         this.memory.tasks[0].parameters[1]--;
@@ -723,6 +829,7 @@ class Agent {
             }
             if (e.action.getClip().animName === "chop") {
                 if (this.goal.type === "chopWood") {
+                    this.memory.physicalEnergy -= 0.5;
                     let chance = 0.25;
                     if (this.memory.handItem.type === "copperAxe") {
                         chance = 0.35;
@@ -789,6 +896,7 @@ class Agent {
             }
             if (e.action.getClip().animName === "mine") {
                 if (this.goal.type === "mineRocks") {
+                    this.memory.physicalEnergy -= 1;
                     /*this.scene.third.physics.add.existing(this.goal.memory.targetTile.mesh, {
                         shape: 'compound',
                         compound: [
@@ -872,7 +980,8 @@ Agent.displayName = {
     "chopWood": "Chop Wood",
     "chop": "Chop",
     "mineRocks": "Mine Rocks",
-    "mine": "Mine"
+    "mine": "Mine",
+    "eat": "Eat"
 }
 Agent.classToGather = {
     GrassBlades: [{

@@ -69,7 +69,7 @@ class Chest extends Entity {
         if (itemSelected) {
             return itemSelected.amount;
         }
-        return false;
+        return 0;
     }
     init() {
         this.mesh = new ExtendedObject3D();
