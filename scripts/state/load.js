@@ -1,5 +1,6 @@
 const typeToConstructor = {
     "Agent": Agent,
+    "Bird": Bird,
     "Dirt": Dirt,
     "Grass": Grass,
     "Sand": Sand,

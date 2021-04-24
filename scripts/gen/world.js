@@ -2,6 +2,7 @@ class World {
     constructor(tiles = []) {
         this.tiles = [];
         this.agents = [];
+        this.initiated = false;
     }
     static generateWorld(world, {
         scene,
@@ -170,6 +171,7 @@ class World {
                 });
             }
         });
+        world.initiated = true;
     }
     static generateWorldFromJSON(world, json) {
         json.world.tiles.forEach(tile => {
@@ -198,6 +200,7 @@ class World {
                 });
             }
         });
+        world.initiated = true;
     }
     update() {
         this.agents.forEach(agent => {

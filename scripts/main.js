@@ -51,6 +51,7 @@ class MainScene extends Scene3D {
         this.third.load.preload("copperPickaxe", "./assets/models/copperPickaxe.fbx");
         this.third.load.preload("ironAxe", "./assets/models/ironAxe.fbx");
         this.third.load.preload("ironPickaxe", "./assets/models/ironPickaxe.fbx");
+        this.third.load.preload("bird", "./assets/models/bird.glb");
         this.treeModel = await this.third.load.fbx("tree");
         this.grassModel = await this.third.load.fbx("grass");
         this.bushModel = await this.third.load.fbx("bush");
@@ -91,14 +92,12 @@ class MainScene extends Scene3D {
         const hemisphereLight = this.third.lights.hemisphereLight({ skyColor: 0xffffff, groundColor: 0x000000, intensity })
         const ambientLight = this.third.lights.ambientLight({ color: 0xffffff, intensity })
             /*const directionalLight = this.third.lights.directionalLight({ color: 0xffffff, intensity })
-
             directionalLight.position.set(100, 200, 50)
             const d = 20
             directionalLight.shadow.camera.top = d
             directionalLight.shadow.camera.bottom = -d
             directionalLight.shadow.camera.left = -d
             directionalLight.shadow.camera.right = d
-
             directionalLight.shadow.mapSize.set(1024, 1024)*/
         this.hemisphereLight = hemisphereLight;
         this.ambientLight = ambientLight;
@@ -209,4 +208,4 @@ document.onclick = (e) => {
 }
 window.addEventListener('load', () => {
     enable3d(() => new Phaser.Game(config)).withPhysics('./lib')
-})
+});
