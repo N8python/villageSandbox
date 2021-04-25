@@ -29,6 +29,14 @@ const tasks = [{
         color: "black"
     }]
 }, {
+    name: "cloneSelf",
+    color: "rgb(100, 175, 255)",
+    display: [{
+        type: "text",
+        value: "Clone Self",
+        color: "black"
+    }]
+}, {
     name: "storeInventory",
     color: "rgb(255, 175, 100)",
     display: [{

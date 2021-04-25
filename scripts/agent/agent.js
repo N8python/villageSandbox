@@ -82,9 +82,9 @@ class Agent {
             }
             this.memory.idleTicks = 0;
         }
-        if (this.memory.handItem && document.getElementById("handItem")) {
+        if (this.memory.handItem && document.getElementById("handItem") && selected === this) {
             document.getElementById("handItem").innerHTML = `<img src="assets/images/items/${this.memory.handItem.type}.png" style="width:32px">`;
-        } else if (document.getElementById("handItem")) {
+        } else if (document.getElementById("handItem") && selected === this) {
             document.getElementById("handItem").innerHTML = "Nothing...";
         }
         if (this.models.handaxeModel) {
@@ -367,6 +367,10 @@ class Agent {
                     this.memory.tasks[0].doing = true;
                     this.goal = { type: "eat", memory: { itemType: this.memory.tasks[0].parameters[1], times: this.memory.tasks[0].parameters[0], source: this.memory.tasks[0].parameters[2] } };
                 }
+                if (this.memory.tasks[0].name === "cloneSelf" && !this.memory.tasks[0].doing) {
+                    this.memory.tasks[0].doing = true;
+                    this.goal = { type: "cloneSelf", memory: {} };
+                }
             }
         }
         if (this.goal.type === "goHome") {
@@ -513,6 +517,50 @@ class Agent {
                     }
                 }
             }
+        }
+        if (this.goal.type === "cloneSelf") {
+            if (this.memory.physicalEnergy > 95 && this.memory.mentalEnergy > 95) {
+                this.memory.physicalEnergy -= 25;
+                this.memory.mentalEnergy -= 25;
+                const tileTarget = this.adjacentTile();
+                let start = {};
+                let end = {};
+                let seed = Math.random();
+                if (seed < 0.25) {
+                    start = { x: tileTarget.x - 24, y: 4, z: tileTarget.z };
+                    end = { x: tileTarget.x + 24, y: 4, z: tileTarget.z };
+                } else if (seed < 0.5) {
+                    start = { x: tileTarget.x + 24, y: 4, z: tileTarget.z };
+                    end = { x: tileTarget.x - 24, y: 4, z: tileTarget.z };
+                } else if (seed < 0.75) {
+                    start = { x: tileTarget.x, y: 4, z: tileTarget.z + 24 };
+                    end = { x: tileTarget.x, y: 4, z: tileTarget.z - 24 };
+                } else {
+                    start = { x: tileTarget.x, y: 4, z: tileTarget.z - 24 };
+                    end = { x: tileTarget.x, y: 4, z: tileTarget.z + 24 };
+                }
+                const theBird = new Bird({
+                    x: start.x,
+                    y: start.y,
+                    z: start.z,
+                    scene: mainScene,
+                    deleteOnTarget: true,
+                    carryingAgent: true,
+                    velocity: 5
+                });
+                theBird.init();
+                theBird.memory.target = end;
+                theBird.memory.dropPoint = {...tileTarget };
+                this.scene.mainWorld.agents.push(theBird);
+            }
+            if (this.memory.tasks.length > 0 && this.memory.tasks[0].name === "cloneSelf") {
+                this.memory.tasks.shift();
+                if (document.getElementById("taskList")) {
+                    this.generateTaskList(document.getElementById("taskList"));
+                }
+            }
+            this.goal = { type: "wander", memory: {} };
+            this.state = { type: "idle", memory: {} };
         }
     }
     createBoundingBox(mesh) {
@@ -696,7 +744,7 @@ class Agent {
                 amount: amt
             })
         }
-        if (document.getElementById("unitGui") && document.getElementById("inventory")) {
+        if (document.getElementById("unitGui") && document.getElementById("inventory") && selected === this) {
             document.getElementById("inventory").innerHTML = verticalInventory(this.memory.inventory);
         }
     }
@@ -718,6 +766,17 @@ class Agent {
                 }
             }
         }
+    }
+    adjacentTile() {
+        const spots = [
+            { x: this.x + 1, z: this.z },
+            { x: this.x, z: this.z + 1 },
+            { x: this.x - 1, z: this.z },
+            { x: this.x, z: this.z - 1 }
+        ].filter(spot => {
+            return !this.scene.mainWorld.tiles.some(tile => (tile instanceof Rocks || tile instanceof House || tile instanceof Bush || tile instanceof Tree || tile instanceof Chest || tile instanceof WorkBench) && tile.contains(spot.x, spot.z))
+        });
+        return spots[Math.floor(Math.random() * spots.length)];
     }
     async init() {
         const model = await this.scene.third.load.fbx("robot");
@@ -876,7 +935,7 @@ class Agent {
                         if (this.memory.tasks.length > 0 && this.memory.tasks[0].name === "chopWood") {
                             this.memory.tasks[0].parameters[0]--;
                         }
-                        if (document.getElementById("taskList")) {
+                        if (document.getElementById("taskList") && selected === this) {
                             this.generateTaskList(document.getElementById("taskList"));
                         }
                         if (this.goal.memory.times > 0) {
@@ -981,7 +1040,8 @@ Agent.displayName = {
     "chop": "Chop",
     "mineRocks": "Mine Rocks",
     "mine": "Mine",
-    "eat": "Eat"
+    "eat": "Eat",
+    "cloneSelf": "Clone Self"
 }
 Agent.classToGather = {
     GrassBlades: [{
