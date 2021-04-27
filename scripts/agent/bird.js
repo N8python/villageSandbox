@@ -97,8 +97,8 @@ class Bird {
             this.rotationZ += angleDifference(this.rotationZ, this.targetRotationZ) / 10;
             this.rotationX += angleDifference(this.rotationX, this.targetRotationX) / 10;
             if (Math.hypot(this.memory.target.x - this.x, this.memory.target.z - this.z) > 0.15) {
-                this.x += 0.01 * Math.sin(angleToTarget) * this.velocity;
-                this.z += 0.01 * Math.cos(angleToTarget) * this.velocity;
+                this.x += 0.01 * Math.sin(angleToTarget) * this.velocity * ((mainScene.delta / 16.66));
+                this.z += 0.01 * Math.cos(angleToTarget) * this.velocity * ((mainScene.delta / 16.66));
             } else if (Math.abs(this.memory.target.y - this.y) <= 0.15) {
                 if (this.deleteOnTarget) {
                     this.scene.mainWorld.agents.splice(this.scene.mainWorld.agents.indexOf(this), 1);
@@ -114,7 +114,7 @@ class Bird {
                     touchingMesh = true;
                     this.yAdjCooldown = 15;
                     //this.targetRotationX += 0.01;
-                    this.y += 0.05 * this.velocity;
+                    this.y += 0.05 * this.velocity * ((mainScene.delta / 16.66));
                 }
                 if (meshBox.containsPoint(new THREE.Vector3(this.x, this.y - 0.35, this.z))) {
                     somethingDown = true;
@@ -128,10 +128,10 @@ class Bird {
                     //this.targetRotationX += 0.01;
                 }
                 if (this.memory.target.y < this.y) {
-                    this.y -= 0.01 * this.velocity;
+                    this.y -= 0.01 * this.velocity * this.velocity * ((mainScene.delta / 16.66));
                 }
                 if (this.memory.target.y > this.y) {
-                    this.y += 0.01 * this.velocity;
+                    this.y += 0.01 * this.velocity * this.velocity * ((mainScene.delta / 16.66));
                 }
                 //this.y -= 0.01;
             }

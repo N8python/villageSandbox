@@ -114,6 +114,8 @@ class MainScene extends Scene3D {
         if (!this.initiated) {
             return;
         }
+        this.delta = delta;
+        stats.begin();
         this.sunAngle += delta / (5 * 60 * 1000) * Math.PI * 2;
         if (this.sunAngle >= Math.PI) {
             this.sunAngle = -Math.PI;
@@ -143,6 +145,7 @@ class MainScene extends Scene3D {
         if (selected) {
             displayInfoFor(selected);
         }
+        stats.end();
     }
     toJSON() {
         return {
@@ -197,7 +200,7 @@ document.onclick = (e) => {
             }
         }
     });
-    const chosen = [...mainScene.mainWorld.tiles, ...mainScene.mainWorld.agents].find(x => x.mesh === chosenMesh);
+    const chosen = [...mainScene.mainWorld.tiles.filter(tile => tile.mesh), ...mainScene.mainWorld.agents.filter(agent => agent.mesh)].find(x => x.mesh === chosenMesh);
     if (chosen) {
         selected = chosen;
     } else {
@@ -210,3 +213,6 @@ document.onclick = (e) => {
 window.addEventListener('load', () => {
     enable3d(() => new Phaser.Game(config)).withPhysics('./lib')
 });
+var stats = new Stats();
+stats.showPanel(0);
+document.body.appendChild(stats.dom);

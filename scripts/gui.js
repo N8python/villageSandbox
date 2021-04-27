@@ -24,7 +24,7 @@ const displayInfoFor = (tile) => {
         selectedMesh.position.x = meshBox.min.x + width / 2;
         selectedMesh.position.y = meshBox.min.y + height / 2;
         selectedMesh.position.z = meshBox.min.z + depth / 2;
-        selectedMesh.scale.set(width, height, depth);
+        selectedMesh.scale.set(width * 1.05, height * 1.05, depth * 1.05);
     }
     lastTile = tile;
 }

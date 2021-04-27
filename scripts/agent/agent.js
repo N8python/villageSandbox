@@ -182,16 +182,16 @@ class Agent {
                 }*/
             } else if (this.state.memory.goal) {
                 if (this.state.memory.goal.x > this.x) {
-                    this.x += 0.025;
+                    this.x += 0.025 * (mainScene.delta / 16.66);
                 }
                 if (this.state.memory.goal.x < this.x) {
-                    this.x -= 0.025;
+                    this.x -= 0.025 * (mainScene.delta / 16.66);
                 }
                 if (this.state.memory.goal.z > this.z) {
-                    this.z += 0.025;
+                    this.z += 0.025 * (mainScene.delta / 16.66);
                 }
                 if (this.state.memory.goal.z < this.z) {
-                    this.z -= 0.025;
+                    this.z -= 0.025 * (mainScene.delta / 16.66);
                 }
                 if (Math.abs(this.state.memory.goal.z - this.z) + Math.abs(this.state.memory.goal.x - this.x) <= 0.05) {
                     this.x = this.state.memory.goal.x;

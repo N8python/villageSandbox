@@ -54,14 +54,14 @@ class Airship {
         this.yBob += 0.025 * Math.sin(performance.now() / 1000);
         this.rotationBob += 0.002 * Math.sin((performance.now() + 24543) / 1000);
         let backOffset = 6 + 2 * Math.sin((performance.now() + 32843) / 25)
-        this.jet1.emitters[0].position.x = this.x - backOffset * Math.sin(this.rotation + Math.PI / 2) + 1.5 * Math.sin(this.rotation);
-        this.jet1.emitters[0].position.y = this.y + 2;
-        this.jet1.emitters[0].position.z = this.z - backOffset * Math.cos(this.rotation + Math.PI / 2) + 1.5 * Math.cos(this.rotation);
-        this.jet1.emitters[0].currentEmitTime = 0;
-        this.jet2.emitters[0].position.x = this.x - backOffset * Math.sin(this.rotation + Math.PI / 2) - 1.5 * Math.sin(this.rotation);
-        this.jet2.emitters[0].position.y = this.y + 2;
-        this.jet2.emitters[0].position.z = this.z - backOffset * Math.cos(this.rotation + Math.PI / 2) - 1.5 * Math.cos(this.rotation);
-        this.jet2.emitters[0].currentEmitTime = 0;
+            /*this.jet1.emitters[0].position.x = this.x - backOffset * Math.sin(this.rotation + Math.PI / 2) + 1.5 * Math.sin(this.rotation);
+            this.jet1.emitters[0].position.y = this.y + 2;
+            this.jet1.emitters[0].position.z = this.z - backOffset * Math.cos(this.rotation + Math.PI / 2) + 1.5 * Math.cos(this.rotation);
+            this.jet1.emitters[0].currentEmitTime = 0;
+            this.jet2.emitters[0].position.x = this.x - backOffset * Math.sin(this.rotation + Math.PI / 2) - 1.5 * Math.sin(this.rotation);
+            this.jet2.emitters[0].position.y = this.y + 2;
+            this.jet2.emitters[0].position.z = this.z - backOffset * Math.cos(this.rotation + Math.PI / 2) - 1.5 * Math.cos(this.rotation);
+            this.jet2.emitters[0].currentEmitTime = 0;*/
     }
     async init() {
         const model = await this.scene.third.load.gltf("airship");
@@ -73,8 +73,8 @@ class Airship {
         this.mesh.rotation.y = this.rotation;
         this.mesh.add(model.scene);
         this.scene.third.add.existing(this.mesh);
-        this.jet1 = await loadEmitter("smoke");
-        this.jet2 = await loadEmitter("smoke");
+        //this.jet1 = await loadEmitter("smoke");
+        //this.jet2 = await loadEmitter("smoke");
         if (this.passengers >= 1) {
             const passenger = await this.createPassenger();
             passenger.position.y = 3.5;
