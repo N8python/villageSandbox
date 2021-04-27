@@ -14,8 +14,8 @@ class Grass extends Tile {
         this.spawnChance = 0.00001;
     }
     init() {
-        this.mesh = this.scene.third.physics.add.box({ x: this.x, y: this.y, z: this.z }, { phong: { color: 'darkgreen' } });
-        this.mesh.body.setCollisionFlags(2);
+        //this.mesh = this.scene.third.physics.add.box({ x: this.x, y: this.y, z: this.z }, { phong: { color: 'darkgreen' } });
+        //this.mesh.body.setCollisionFlags(2);
     }
     spawn(world) {
         const tiles = world.tiles.filter(tile => tile.contains(this.x, this.z) && tile !== this);

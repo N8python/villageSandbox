@@ -1,5 +1,8 @@
 let lastTile;
 const displayInfoFor = (tile) => {
+    if (!tile.mesh) {
+        return;
+    }
     document.getElementById("unitName").innerHTML = displayName[tile.constructor.name] ? displayName[tile.constructor.name] : tile.constructor.name;
     if (tile.getInfo) {
         document.getElementById("unitInfo").innerHTML = tile.getInfo();

@@ -21,8 +21,8 @@ class Water extends Tile {
     init() {
         //this.tex1.needsUpdate = true;
         //this.tex2.needsUpdate = true;
-        this.mesh = this.scene.third.physics.add.box({ x: this.x, y: this.y, z: this.z }, { phong: { color: '#1da2d8' } });
-        this.mesh.body.setCollisionFlags(2);
+        //this.mesh = this.scene.third.physics.add.box({ x: this.x, y: this.y, z: this.z }, { phong: { color: '#1da2d8' } });
+        //this.mesh.body.setCollisionFlags(2);
     }
     spawn(world) {
         if (mainScene.mainWorld.tiles.filter(x => x instanceof Seashell).length > 20) {

@@ -13,8 +13,8 @@ class Dirt extends Tile {
         })
     }
     init() {
-        this.mesh = this.scene.third.physics.add.box({ x: this.x, y: this.y, z: this.z }, { phong: { color: '#9b7653' } });
-        this.mesh.body.setCollisionFlags(2);
+        //this.mesh = this.scene.third.physics.add.box({ x: this.x, y: this.y, z: this.z }, { phong: { color: '#9b7653' } });
+        //this.mesh.body.setCollisionFlags(2);
     }
     static fromJSON({
         x,

@@ -156,21 +156,54 @@ class World {
         theAgent.init();
         world.agents.push(theAgent);
         world.tiles.forEach(tile => {
-            tile.mesh.traverse(child => {
-                if (child.isMesh) {
-                    child.castShadow = true;
-                    child.receiveShadow = true;
-                }
-            });
-            if (!(tile instanceof Entity)) {
+            if (tile instanceof Entity) {
                 tile.mesh.traverse(child => {
                     if (child.isMesh) {
-                        child.castShadow = false;
+                        child.castShadow = true;
                         child.receiveShadow = true;
                     }
                 });
             }
         });
+        const blocks = [];
+        for (let x = -16; x < 16; x++) {
+            blocks[x + 16] = [];
+            for (let z = -16; z < 16; z++) {
+                blocks[x + 16][z + 16] = world.tiles.find(tile => !(tile instanceof Entity) && tile.x === x && tile.z === z).constructor.name;
+            }
+        }
+        const blockColors = {
+            "Dirt": new THREE.Color(0x9b7653),
+            "Grass": new THREE.Color(0x006400),
+            "Sand": new THREE.Color(0xC2B280),
+            "Stone": new THREE.Color(0x808080),
+            "Water": new THREE.Color(0x1da2d8)
+        }
+        const data = new Uint8Array(3 * 1024);
+        for (let i = 0; i < 1024; i++) {
+            const x = Math.floor(i / 32);
+            const z = i - x * 32;
+            const block = blocks[x][z];
+            const color = blockColors[block];
+            const stride = i * 3;
+            data[stride] = color.r * 255;
+            data[stride + 1] = color.g * 255;
+            data[stride + 2] = color.b * 255;
+        }
+        const tex = new THREE.DataTexture(data, 32, 32, THREE.RGBFormat);
+        tex.center = new THREE.Vector2(0.5, 0.5);
+        tex.rotation = -Math.PI / 2;
+        const sides = new THREE.DataTexture(dataFromColor({
+            r: blockColors["Dirt"].r * 255,
+            g: blockColors["Dirt"].g * 255,
+            b: blockColors["Dirt"].b * 255,
+            width: 16,
+            height: 16
+        }), 16, 16, THREE.RGBFormat);
+        const textureCube = mainScene.third.misc.textureCube([sides, sides, tex, tex, sides, sides]);
+        world.ground = mainScene.third.add.box({ x: -0.5, y: 0.5, z: -0.5, width: 32, depth: 32 }, { custom: textureCube.materials });
+        // world.ground.material = new THREE.MeshPhongMaterial({ map: tex });
+        world.ground.receiveShadow = true;
         world.initiated = true;
     }
     static generateWorldFromJSON(world, json) {
@@ -185,21 +218,54 @@ class World {
             world.agents.push(a);
         });
         world.tiles.forEach(tile => {
-            tile.mesh.traverse(child => {
-                if (child.isMesh) {
-                    child.castShadow = true;
-                    child.receiveShadow = true;
-                }
-            });
-            if (!(tile instanceof Entity)) {
+            if (tile instanceof Entity) {
                 tile.mesh.traverse(child => {
                     if (child.isMesh) {
-                        child.castShadow = false;
+                        child.castShadow = true;
                         child.receiveShadow = true;
                     }
                 });
             }
         });
+        const blocks = [];
+        for (let x = -16; x < 16; x++) {
+            blocks[x + 16] = [];
+            for (let z = -16; z < 16; z++) {
+                blocks[x + 16][z + 16] = world.tiles.find(tile => !(tile instanceof Entity) && tile.x === x && tile.z === z).constructor.name;
+            }
+        }
+        const blockColors = {
+            "Dirt": new THREE.Color(0x9b7653),
+            "Grass": new THREE.Color(0x006400),
+            "Sand": new THREE.Color(0xC2B280),
+            "Stone": new THREE.Color(0x808080),
+            "Water": new THREE.Color(0x1da2d8)
+        }
+        const data = new Uint8Array(3 * 1024);
+        for (let i = 0; i < 1024; i++) {
+            const x = Math.floor(i / 32);
+            const z = i - x * 32;
+            const block = blocks[x][z];
+            const color = blockColors[block];
+            const stride = i * 3;
+            data[stride] = color.r * 255;
+            data[stride + 1] = color.g * 255;
+            data[stride + 2] = color.b * 255;
+        }
+        const tex = new THREE.DataTexture(data, 32, 32, THREE.RGBFormat);
+        tex.center = new THREE.Vector2(0.5, 0.5);
+        tex.rotation = -Math.PI / 2;
+        const sides = new THREE.DataTexture(dataFromColor({
+            r: blockColors["Dirt"].r * 255,
+            g: blockColors["Dirt"].g * 255,
+            b: blockColors["Dirt"].b * 255,
+            width: 16,
+            height: 16
+        }), 16, 16, THREE.RGBFormat);
+        const textureCube = mainScene.third.misc.textureCube([sides, sides, tex, tex, sides, sides]);
+        world.ground = mainScene.third.add.box({ x: -0.5, y: 0.5, z: -0.5, width: 32, depth: 32 }, { custom: textureCube.materials });
+        // world.ground.material = new THREE.MeshPhongMaterial({ map: tex });
+        world.ground.receiveShadow = true;
         world.initiated = true;
     }
     update() {
@@ -221,4 +287,27 @@ class World {
             agents: this.agents.map(agent => agent.toJSON())
         }
     }
+}
+
+const dataFromColor = ({
+    r,
+    g,
+    b,
+    width,
+    height
+}) => {
+
+    const size = width * height;
+    const data = new Uint8Array(3 * size);
+
+    for (let i = 0; i < size; i++) {
+
+        const stride = i * 3;
+
+        data[stride] = r;
+        data[stride + 1] = g;
+        data[stride + 2] = b;
+
+    }
+    return data;
 }

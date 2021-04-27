@@ -15,8 +15,8 @@ class Stone extends Tile {
         this.spawnChance = 0.00001;
     }
     init() {
-        this.mesh = this.scene.third.physics.add.box({ x: this.x, y: this.y, z: this.z }, { phong: { color: 'grey' } });
-        this.mesh.body.setCollisionFlags(2);
+        //this.mesh = this.scene.third.physics.add.box({ x: this.x, y: this.y, z: this.z }, { phong: { color: 'grey' } });
+        //this.mesh.body.setCollisionFlags(2);
     }
     spawn(world) {
         if (mainScene.mainWorld.tiles.filter(x => x instanceof Rocks).length > 35) {
