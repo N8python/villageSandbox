@@ -141,5 +141,5 @@ const craftingMenu = (node, recipes, chest) => {
         }, 500);
         node.appendChild(document.createElement("br"));
         node.appendChild(document.createElement("br"));
-    })
+    });
 }

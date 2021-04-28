@@ -103,18 +103,28 @@ class MainScene extends Scene3D {
         this.hemisphereLight = hemisphereLight;
         this.ambientLight = ambientLight;
         this.sunAngle = 0;
-        if (localProxy.scene) {
+        this.time = 0;
+        this.days = 0;
+        if (localProxy.scene.sunAngle !== undefined) {
             this.sunAngle = localProxy.scene.sunAngle;
+        }
+        if (localProxy.scene.time !== undefined) {
+            this.time = localProxy.scene.time;
+        }
+        if (localProxy.scene.days !== undefined) {
+            this.days = localProxy.scene.days;
         }
         this.initiated = true;
         /*testPath = Pathfind.findPath({ world: mainScene.mainWorld, start: { x: -16, z: -16 }, end: { x: 15, z: 15 } });*/
         //testCircle = this.third.add.sphere({ x: -16, y: 1, z: -16, radius: 0.5 }, { phong: { color: 'red' } })
+        this.third.renderer.setPixelRatio(1 /*window.devicePixelRatio*/ ); // could set this to 2 but costs 10 FPS.
     }
     update(time, delta) {
         if (!this.initiated) {
             return;
         }
         this.delta = delta;
+        this.time += delta;
         stats.begin();
         this.sunAngle += delta / (5 * 60 * 1000) * Math.PI * 2;
         if (this.sunAngle >= Math.PI) {
@@ -141,6 +151,11 @@ class MainScene extends Scene3D {
         }*/
         if (this.mainWorld) {
             this.mainWorld.update();
+            if (this.time > 5 * 60 * 1000) {
+                this.days += 1;
+                this.time = 0;
+                this.mainWorld.dayEnd();
+            }
         }
         if (selected) {
             displayInfoFor(selected);
@@ -150,7 +165,9 @@ class MainScene extends Scene3D {
     toJSON() {
         return {
             world: this.mainWorld.toJSON(),
-            sunAngle: this.sunAngle
+            sunAngle: this.sunAngle,
+            time: this.time,
+            days: this.days
         }
     }
 }

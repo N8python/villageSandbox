@@ -287,6 +287,28 @@ class World {
             agents: this.agents.map(agent => agent.toJSON())
         }
     }
+    dayEnd() {
+        if (Math.random() < 0.5) {
+            let x = 0;
+            let z = 0;
+            if (Math.random() < 0.5) {
+                if (Math.random() < 0.5) {
+                    x = -18;
+                } else {
+                    x = 18;
+                }
+            } else {
+                if (Math.random() < 0.5) {
+                    z = -18;
+                } else {
+                    z = 18;
+                }
+            }
+            const airship = new Airship({ x: z !== 0 ? -z : x, z: x !== 0 ? -x : z, target: { x, y: 1, z }, y: 1, rotation: x !== 0 ? Math.PI / 2 : 0, passengers: 1, scene: mainScene, merchant: true, timeLeft: 90000 });
+            airship.init();
+            mainScene.mainWorld.agents.push(airship)
+        }
+    }
 }
 
 const dataFromColor = ({
