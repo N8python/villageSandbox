@@ -18,3 +18,13 @@ const loadEmitter = async(name) => {
     }, 33);
     return system;
 }
+const addRemoveFromTaskList = (goal) => {
+    goal.removeFromTaskList = function(agent) {
+        if (agent.memory.tasks.length > 0 && agent.memory.tasks[0].name === this.name) {
+            agent.memory.tasks.shift();
+            if (document.getElementById("taskList") && selected === agent) {
+                agent.generateTaskList(document.getElementById("taskList"));
+            }
+        }
+    }
+}

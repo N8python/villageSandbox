@@ -1,0 +1,1 @@
+const goals = [chopWoodGoal, cloneSelfGoal, eatGoal, equipItemGoal, gatherGoal, goHomeGoal, mineRocksGoal, storeInventoryGoal, wanderGoal];

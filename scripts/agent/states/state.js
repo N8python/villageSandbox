@@ -1,0 +1,1 @@
+const states = [chopState, followPathState, gatherState, idleState, mineState];

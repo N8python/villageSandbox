@@ -13,6 +13,7 @@ const typeToConstructor = {
     "House": House,
     "Rocks": Rocks,
     "Seashell": Seashell,
+    "Seashells": Seashell,
     "Tree": Tree,
     "WorkBench": WorkBench
 }

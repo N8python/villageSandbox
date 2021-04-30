@@ -105,13 +105,13 @@ class MainScene extends Scene3D {
         this.sunAngle = 0;
         this.time = 0;
         this.days = 0;
-        if (localProxy.scene.sunAngle !== undefined) {
+        if (localProxy.scene && localProxy.scene.sunAngle !== undefined) {
             this.sunAngle = localProxy.scene.sunAngle;
         }
-        if (localProxy.scene.time !== undefined) {
+        if (localProxy.scene && localProxy.scene.time !== undefined) {
             this.time = localProxy.scene.time;
         }
-        if (localProxy.scene.days !== undefined) {
+        if (localProxy.scene && localProxy.scene.days !== undefined) {
             this.days = localProxy.scene.days;
         }
         this.initiated = true;
