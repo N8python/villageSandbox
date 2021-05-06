@@ -24,7 +24,7 @@ const followPathState = {
                 agent.x = agent.state.memory.goal.x;
                 agent.z = agent.state.memory.goal.z;
                 agent.state.memory.goal = undefined;
-                if (Math.hypot(agent.x - agent.memory.home.x, agent.z - agent.memory.home.z) > 8 && agent.scene.sunAngle < 0 && agent.goal.type !== "goHome") {
+                if (Math.hypot(agent.x - agent.memory.home.x, agent.z - agent.memory.home.z) > 8 && agent.scene.sunAngle < 0 && agent.goal.type !== "goHome" && !agent.memory.inCombat) {
                     agent.goal = { type: "goHome", memory: {} };
                     agent.goalManager = goals.find(goal => goal.name === agent.goal.type);
                     if (agent.memory.tasks.length > 0) {

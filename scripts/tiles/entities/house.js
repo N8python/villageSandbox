@@ -38,6 +38,8 @@ class House extends Entity {
         this.mesh.rotation.y = this.rotation;
         this.mesh.scale.set(1, 1, 1);
         this.scene.third.add.existing(this.mesh);
+        this.mesh.matrixAutoUpdate = false;
+        this.mesh.updateMatrix();
     }
     static fromJSON({
         x,

@@ -1,1 +1,1 @@
-const states = [chopState, followPathState, gatherState, idleState, mineState];
+const states = [attackState, chopState, deathState, followPathState, gatherState, idleState, mineState];

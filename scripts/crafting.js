@@ -76,4 +76,34 @@ const craftingRecipes = [{
         type: "ironPickaxe",
         amount: 1
     }]
+}, {
+    inputs: [{
+        type: "wood",
+        amount: 6
+    }, {
+        type: "rocks",
+        amount: 6
+    }, {
+        type: "copper",
+        amount: 6
+    }],
+    outputs: [{
+        type: "copperSword",
+        amount: 1
+    }]
+}, {
+    inputs: [{
+        type: "wood",
+        amount: 6
+    }, {
+        type: "rocks",
+        amount: 6
+    }, {
+        type: "iron",
+        amount: 6
+    }],
+    outputs: [{
+        type: "ironSword",
+        amount: 1
+    }]
 }]

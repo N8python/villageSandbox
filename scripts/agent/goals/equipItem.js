@@ -2,7 +2,7 @@ const equipItemGoal = {
     name: "equipItem",
     update(agent) {
         if (!agent.goal.memory.headingToChest) {
-            agent.goal.memory.headingToChest = agent;
+            agent.goal.memory.headingToChest = true;
             const path = Pathfind.findPath({ world: agent.scene.mainWorld, start: { x: Math.round(agent.x), z: Math.round(agent.z) }, end: agent.memory.chest.entrance() });
             if (path.length > 0) {
                 agent.state = { type: "followPath", memory: {} };
@@ -21,8 +21,10 @@ const equipItemGoal = {
                 "Pickaxe": "pickaxe",
                 "Copper Axe": "copperAxe",
                 "Copper Pickaxe": "copperPickaxe",
+                "Copper Sword": "copperSword",
                 "Iron Axe": "ironAxe",
-                "Iron Pickaxe": "ironPickaxe"
+                "Iron Pickaxe": "ironPickaxe",
+                "Iron Sword": "ironSword"
             })[agent.memory.tasks[0].parameters[0]];
             if (agent.memory.chest.amountInInventory(itemType) > 0) {
                 if (agent.memory.handItem && agent.memory.handItem.type) {

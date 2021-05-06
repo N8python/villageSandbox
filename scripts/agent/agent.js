@@ -3,7 +3,8 @@ class Agent {
         x,
         y = 1,
         z,
-        scene
+        scene,
+        team = "player"
     }) {
         this.x = x;
         this.y = y;
@@ -19,17 +20,26 @@ class Agent {
             totalTicks: 0,
             tasks: [],
             inventory: [],
+            team,
+            inCombat: false,
             handItem: null
         };
         this.models = {};
         this.goal = { type: "wander", memory: {} };
         this.state = { type: "idle", memory: {} };
         this.initiated = false;
+        this.id = +Math.random().toString().slice(2);
+        this.xVel = 0;
+        this.zVel = 0;
     }
     makeJSONSafe(obj) {
         const clone = {};
         Object.keys(obj).forEach(key => {
-            clone[key] = obj[key] && obj[key].toJSON ? obj[key].toJSON() : obj[key];
+            if (obj[key] instanceof Agent) {
+                clone[key] = obj[key].id;
+            } else {
+                clone[key] = obj[key] && obj[key].toJSON ? obj[key].toJSON() : obj[key];
+            }
         })
         return clone;
     }
@@ -54,6 +64,7 @@ class Agent {
             memory: this.makeJSONSafe(this.memory),
             goal: this.makeJSONSafe(this.goal),
             state: this.makeJSONSafe(this.state),
+            id: this.id,
             type: "Agent"
         }
     }
@@ -67,14 +78,39 @@ class Agent {
         a.rotation = json.rotation;
         a.targetRotation = json.targetRotation;
         a.memory = a.jsonObjToRef(json.memory);
+        if (!json.memory.team) {
+            a.memory.team = "player";
+        }
         a.goal = {...a.jsonObjToRef(json.goal), memory: a.jsonObjToRef(json.goal.memory) };
         a.state = {...a.jsonObjToRef(json.state), memory: a.jsonObjToRef(json.state.memory) };
+        a.id = json.id;
+        [...a.scene.mainWorld.agents, a].forEach(agent => {
+            if (typeof agent.memory.target === "number") {
+                [...a.scene.mainWorld.agents, a].forEach(targetMaybe => {
+                    if (targetMaybe.id === agent.memory.target) {
+                        agent.memory.target = targetMaybe;
+                    }
+                });
+            }
+        });
         return a;
+    }
+    contains(x, z) {
+        return Math.round(this.x) === x && Math.round(this.z) === z;
     }
     update() {
         this.memory.health = Math.max(Math.min(this.memory.health, 100), 0);
         this.memory.physicalEnergy = Math.max(Math.min(this.memory.physicalEnergy, 100), 0);
         this.memory.mentalEnergy = Math.max(Math.min(this.memory.mentalEnergy, 100), 0);
+        if (this.memory.health < 100) {
+            if (Math.random() < 0.005 && this.memory.physicalEnergy > 0) {
+                this.memory.physicalEnergy -= 3;
+                this.memory.health += 1;
+            }
+        }
+        if (this.memory.health <= 0 && this.goal.type !== "death") {
+            this.goal = { type: "death", memory: {} };
+        }
         this.memory.totalTicks++;
         if (this.memory.totalTicks % 3600 === 0) {
             if (this.memory.idleTicks / 3600 < 0.25) {
@@ -87,7 +123,7 @@ class Agent {
         } else if (document.getElementById("handItem") && selected === this) {
             document.getElementById("handItem").innerHTML = "Nothing...";
         }
-        ["handaxe", "pickaxe", "copperAxe", "copperPickaxe", "ironAxe", "ironPickaxe"].forEach(item => {
+        ["handaxe", "pickaxe", "copperAxe", "copperPickaxe", "copperSword", "ironAxe", "ironPickaxe", "ironSword"].forEach(item => {
             if (this.models[item + "Model"]) {
                 this.models[item + "Model"].visible = false;
                 if (this.memory.handItem) {
@@ -119,11 +155,31 @@ class Agent {
         this.mesh.position.y = this.y;
         this.mesh.position.z = this.z;
         this.mesh.rotation.y = this.rotation;
+        const futureSpot = { x: Math.round(this.x + this.xVel), z: Math.round(this.z + this.zVel) };
+        if (this.scene.mainWorld.tiles.some(tile => (tile instanceof Rocks || tile instanceof House || tile instanceof Bush || tile instanceof Tree || tile instanceof Chest || tile instanceof WorkBench) && tile.contains(futureSpot.x, futureSpot.z))) {
+            this.xVel = 0;
+            this.zVel = 0;
+        }
+        if (futureSpot.x < -16 || futureSpot.z < -16 || futureSpot.x > 16 || futureSpot.z > 16) {
+            this.xVel = 0;
+            this.zVel = 0;
+        }
+        if (this.xVel) {
+            this.x += this.xVel / 10;
+            this.xVel *= 0.9;
+        }
+        if (this.zVel) {
+            this.z += this.zVel / 10;
+            this.zVel *= 0.9;
+        }
         this.rotation += angleDifference(this.rotation, this.targetRotation) / 10;
         this.updateStateManager();
         this.updateGoalManager();
         this.stateManager.update(this);
         this.goalManager.update(this);
+        if (!this.memory.inCombat && this.getEnemies().length > 0) {
+            setToCombat(this);
+        }
     }
     updateStateManager() {
         this.stateManager = states.find(state => state.name === this.state.type);
@@ -221,6 +277,13 @@ class Agent {
         const addTask = document.createElement("button");
         addTask.innerHTML = "Add Task";
         document.getElementById("tasks").appendChild(addTask);
+        setInterval(() => {
+            if (this.memory.inCombat) {
+                addTask.setAttribute("disabled", "true");
+            } else {
+                addTask.removeAttribute("disabled");
+            }
+        }, 250);
         addTask.onclick = () => {
             const selectedTask = taskDivs.find(td => td.selected);
             if (selectedTask) {
@@ -238,6 +301,9 @@ class Agent {
             }
         }
         document.getElementById("inventory").innerHTML = verticalInventory(this.memory.inventory);
+        if (this.memory.team === "invader") {
+            rootNode.innerHTML = "";
+        }
     }
     generateTaskList(rootNode) {
         rootNode.innerHTML = "";
@@ -299,6 +365,38 @@ class Agent {
             path: []
         };
     }
+    findPathToTarget() {
+        if (!this.memory.target) {
+            return {
+                path: []
+            };
+        }
+        let targetEntrance = { x: Math.round(this.memory.target.x), z: Math.round(this.memory.target.z) };
+        if (this.memory.targetFlank) {
+            if (this.memory.targetFlank === 0) {
+                targetEntrance.x += 1;
+            }
+            if (this.memory.targetFlank === 1) {
+                targetEntrance.z += 1;
+            }
+            if (this.memory.targetFlank === 2) {
+                targetEntrance.x -= 1;
+            }
+            if (this.memory.targetFlank === 3) {
+                targetEntrance.z -= 1;
+            }
+        }
+        if (this.scene.mainWorld.tiles.some(tile => (tile instanceof Rocks || tile instanceof House || tile instanceof Bush || tile instanceof Tree || tile instanceof Chest || tile instanceof WorkBench) && tile.contains(targetEntrance.x, targetEntrance.z))) {
+            targetEntrance = { x: Math.round(this.memory.target.x), z: Math.round(this.memory.target.z) };
+        }
+        if (targetEntrance.x < -16 || targetEntrance.z < -16 || targetEntrance.x > 16 || targetEntrance.z > 16) {
+            targetEntrance = { x: Math.round(this.memory.target.x), z: Math.round(this.memory.target.z) };
+        }
+        const path = Pathfind.findPath({ world: this.scene.mainWorld, start: { x: Math.round(this.x), z: Math.round(this.z) }, end: targetEntrance });
+        return {
+            path
+        };
+    }
     addToInventory(item, amt) {
         if (amt === 0) {
             return;
@@ -346,14 +444,50 @@ class Agent {
         });
         return spots[Math.floor(Math.random() * spots.length)];
     }
+    getAllies() {
+        return this.scene.mainWorld.agents.filter(agent => agent instanceof Agent && Agent.teamRelations[this.memory.team].allies.includes(agent.memory.team) && agent !== this && agent.goal.type !== "death");
+    }
+    getEnemies() {
+        return this.scene.mainWorld.agents.filter(agent => agent instanceof Agent && Agent.teamRelations[this.memory.team].enemies.includes(agent.memory.team) && agent !== this && agent.goal.type !== "death");
+    }
+    chooseTarget() {
+        const enemies = this.getEnemies();
+        const allies = this.getAllies();
+        const enemyTargets = {};
+        enemies.forEach(enemy => {
+            enemyTargets[enemy.id] = 0;
+        });
+        allies.forEach(ally => {
+            if (ally.memory.target) {
+                enemyTargets[ally.memory.target.id] += 1;
+            }
+        });
+        let minId;
+        let minAmount = Infinity;
+        Object.entries(enemyTargets).forEach(([id, amount]) => {
+            if (amount < minAmount) {
+                minId = id;
+                minAmount = amount;
+            }
+        });
+        if (minId !== undefined) {
+            minId = +minId;
+            const target = enemies.find(enemy => enemy.id === minId);
+            this.memory.target = target;
+            this.memory.targetFlank = minAmount;
+        }
+    }
     async init() {
         const model = await this.scene.third.load.fbx("robot");
+        const flag = await this.scene.third.load.fbx("flag");
         const handaxeModel = await this.scene.third.load.fbx("handaxe");
         const pickaxeModel = await this.scene.third.load.fbx("pickaxe");
         const copperAxeModel = await this.scene.third.load.fbx("copperAxe");
         const copperPickaxeModel = await this.scene.third.load.fbx("copperPickaxe");
+        const copperSwordModel = await this.scene.third.load.fbx("copperSword");
         const ironAxeModel = await this.scene.third.load.fbx("ironAxe");
         const ironPickaxeModel = await this.scene.third.load.fbx("ironPickaxe");
+        const ironSwordModel = await this.scene.third.load.fbx("ironSword");
         handaxeModel.scale.set(200, 200, 200);
         handaxeModel.castShadow = true;
         this.models.handaxeModel = handaxeModel;
@@ -372,7 +506,24 @@ class Agent {
         ironPickaxeModel.scale.set(0.5, 0.5, 0.5);
         ironPickaxeModel.castShadow = true;
         this.models.ironPickaxeModel = ironPickaxeModel;
+        ironSwordModel.scale.set(1, 1, 1);
+        ironSwordModel.castShadow = true;
+        this.models.ironSwordModel = ironSwordModel;
+        copperSwordModel.scale.set(1, 1, 1);
+        copperSwordModel.castShadow = true;
+        this.models.copperSwordModel = copperSwordModel;
         let added = false;
+        let flagAdded = false;
+        flag.traverse(child => {
+            if (child.material) {
+                child.material.side = THREE.DoubleSide;
+            }
+        });
+        flag.scale.set(0.5, 0.5, 0.5);
+        flag.position.y = 250;
+        flag.rotation.y = Math.PI / 2;
+        flag.rotation.x = -Math.PI / 6;
+        flag.position.z = -150;
         model.traverse(child => {
                 if (child.name === 'mixamorigRightHand' && !added) {
                     //console.log("YAY")
@@ -380,11 +531,18 @@ class Agent {
                     child.add(handaxeModel);
                     child.add(pickaxeModel);
                     child.add(copperAxeModel);
+                    child.add(copperSwordModel);
                     child.add(copperPickaxeModel);
                     child.add(ironAxeModel);
                     child.add(ironPickaxeModel);
+                    child.add(ironSwordModel);
+                    child.add(ironAxeModel);
                     //alert("YAY")
                     added = true;
+                }
+                if (child.name === 'mixamorigSpine' && !flagAdded && this.memory.team === "invader") {
+                    flagAdded = true;
+                    child.add(flag);
                 }
             })
             //model.scale.set(0.005, 0.005, 0.005);
@@ -395,12 +553,11 @@ class Agent {
         this.mesh.scale.set(0.005, 0.005, 0.005);
         //this.mesh.children[0].material = new THREE.MeshPhongMaterial({ color: 0x006400 })
         this.scene.third.add.existing(this.mesh);
-        /*this.scene.third.load.fbx(`./assets/characters/robot/Heavy Weapon Swing.fbx`).then(object => {
+        /*this.scene.third.load.fbx(`./assets/characters/robot/Death From Front Headshot.fbx`).then(object => {
             console.log(JSON.stringify(object.animations[0]));
         });*/
-
         this.scene.third.animationMixers.add(this.mesh.animationMixer);
-        const animsToLoad = ["idle", "walk", "gather", "chop", "mine"];
+        const animsToLoad = ["idle", "walk", "gather", "chop", "mine", "attack", "death"];
         for (const anim of animsToLoad) {
             const animText = await fetch(`./assets/characters/robot/animations/${anim}.json`);
             const animJson = await animText.json();
@@ -440,7 +597,9 @@ Agent.displayName = {
     "mineRocks": "Mine Rocks",
     "mine": "Mine",
     "eat": "Eat",
-    "cloneSelf": "Clone Self"
+    "cloneSelf": "Clone Self",
+    "attack": "Attack",
+    "death": "Death"
 }
 Agent.classToGather = {
     GrassBlades: [{
@@ -482,4 +641,14 @@ Agent.typeToClass = {
     "Rocks": Rocks,
     "Seashells": Seashell,
     "Bushes": Bush
+}
+Agent.teamRelations = {
+    "player": {
+        allies: ["player"],
+        enemies: ["invader"]
+    },
+    "invader": {
+        allies: ["invader"],
+        enemies: ["player"]
+    }
 }

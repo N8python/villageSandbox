@@ -11,7 +11,7 @@ const gatherGoal = {
                 agent.state = { type: "followPath", memory: {} };
                 agent.state.memory.path = path;
             } else {
-                this.removeFromTaskList(agent)
+                this.removeFromTaskList(agent);
                 agent.goal = { type: "wander", memory: {} };
             }
         }

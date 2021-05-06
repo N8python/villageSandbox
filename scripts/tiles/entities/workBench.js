@@ -48,6 +48,8 @@ class WorkBench extends Entity {
                 }
             })
         }
+        this.mesh.matrixAutoUpdate = false;
+        this.mesh.updateMatrix();
     }
     update() {
         if (this.chest === undefined) {

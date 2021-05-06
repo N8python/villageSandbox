@@ -6,8 +6,10 @@ class Airship {
         rotation = 0,
         passengers = 0,
         merchant = false,
+        invader = false,
         timeLeft = Infinity,
         target,
+        passengerData,
         scene
     }) {
         this.x = x;
@@ -31,6 +33,10 @@ class Airship {
                 this.memory.trades.push(randomTrade());
             }
         }
+        this.invader = invader;
+        if (this.invader) {
+            this.memory.passengerData = passengerData;
+        }
         this.scene = scene;
         this.rotationBob = 0;
         this.yBob = 0;
@@ -43,6 +49,7 @@ class Airship {
             rotation: this.rotation,
             passengers: this.passengers,
             merchant: this.merchant,
+            invader: this.invader,
             memory: this.memory,
             type: "Airship"
         }
@@ -55,6 +62,7 @@ class Airship {
             rotation: json.rotation,
             passengers: json.passengers,
             merchant: json.merchant,
+            invader: json.invader,
             scene: mainScene
         })
         a.memory = json.memory;
@@ -96,6 +104,56 @@ class Airship {
             if ((Math.hypot(this.memory.target.x - this.x, this.memory.target.z - this.z) > 0.15) || this.memory.timeLeft < 0) {
                 this.x += 0.1 * Math.sin(this.memory.timeLeft < 0 ? this.rotation + Math.PI / 2 : angleToTarget) * ((mainScene.delta / 16.66));
                 this.z += 0.1 * Math.cos(this.memory.timeLeft < 0 ? this.rotation + Math.PI / 2 : angleToTarget) * ((mainScene.delta / 16.66));
+            } else if (this.invader) {
+                if (!this.memory.droppedOff) {
+                    this.memory.droppedOff = true;
+                    let dropPointX = Math.round(this.x);
+                    let dropPointZ = Math.round(this.z);
+                    if (dropPointX < -16) {
+                        dropPointX = -16;
+                    }
+                    if (dropPointX >= 16) {
+                        dropPointX = 15;
+                    }
+                    if (dropPointZ < -16) {
+                        dropPointZ = -16;
+                    }
+                    if (dropPointZ >= 16) {
+                        dropPointZ = 15;
+                    }
+                    let placeAxis = "z";
+                    if (dropPointZ < dropPointX) {
+                        placeAxis = "x";
+                    }
+                    let placePoint = -1;
+                    this.passengers = 1;
+                    for (let i = 0; i < this.memory.passengerData.length; i++) {
+                        this.passengerMeshes[i + 1].visible = false;
+                        const data = this.memory.passengerData[i];
+                        let attemptedPoint;
+                        do {
+                            placePoint++;
+                            attemptedPoint = { x: dropPointX, z: dropPointZ };
+                            if (placeAxis === "x") {
+                                attemptedPoint.x += placePoint;
+                            } else if (placeAxis === "z") {
+                                attemptedPoint.z += placePoint;
+                            }
+                        } while (mainScene.mainWorld.tiles.some(tile => (tile instanceof Rocks || tile instanceof House || tile instanceof Bush || tile instanceof Tree || tile instanceof Chest || tile instanceof WorkBench) && tile.contains(attemptedPoint.x, attemptedPoint.z)));
+                        const theAgent = new Agent({
+                            x: attemptedPoint.x,
+                            z: attemptedPoint.z,
+                            scene: mainScene,
+                            model: mainScene.agentModel,
+                            team: "invader"
+                        });
+                        if (data.handItem) {
+                            theAgent.memory.handItem = { type: data.handItem, amount: 1 };
+                        }
+                        theAgent.init();
+                        mainScene.mainWorld.agents.push(theAgent);
+                    }
+                }
             }
             if (this.memory.timeLeft < -5000) {
                 this.scene.mainWorld.agents.splice(this.scene.mainWorld.agents.indexOf(this), 1);

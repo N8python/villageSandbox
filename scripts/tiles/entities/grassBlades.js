@@ -24,6 +24,8 @@ class GrassBlades extends Entity {
         this.mesh.rotation.y = this.rotation;
         this.mesh.scale.set(0.0025, 0.0025, 0.0025);
         this.scene.third.add.existing(this.mesh);
+        this.mesh.matrixAutoUpdate = false;
+        this.mesh.updateMatrix();
     }
     static fromJSON({
         x,
