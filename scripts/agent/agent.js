@@ -224,7 +224,21 @@ class Agent {
         const talkButton = document.createElement("button");
         talkButton.innerHTML = "Talk";
         talkButton.onclick = () => {
-            displayRobotText(genSentence("idle"));
+            const weights = {
+                "idle": 1
+            }
+            let chosen = undefined;
+            let max = Object.values(weights).reduce((t, v) => t + v);
+            let threshold = Math.random() * max;
+            let running = 0;
+            Object.entries(weights).some(([name, weight]) => {
+                running += weight;
+                if (running >= threshold) {
+                    chosen = name;
+                    return true;
+                }
+            })
+            displayRobotText(genSentence(chosen));
         }
         document.getElementById("talk").appendChild(talkButton);
         const taskDivs = [];

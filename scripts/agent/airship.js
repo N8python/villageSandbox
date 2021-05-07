@@ -121,9 +121,9 @@ class Airship {
                     if (dropPointZ >= 16) {
                         dropPointZ = 15;
                     }
-                    let placeAxis = "z";
+                    let placeAxis = "x";
                     if (dropPointZ < dropPointX) {
-                        placeAxis = "x";
+                        placeAxis = "z";
                     }
                     let placePoint = -1;
                     this.passengers = 1;

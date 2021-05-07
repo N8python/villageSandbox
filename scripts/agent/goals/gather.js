@@ -3,8 +3,6 @@ const gatherGoal = {
     update(agent) {
         if (!agent.goal.memory.startedGathering) {
             agent.goal.memory.startedGathering = true;
-            console.log(agent.goal.memory.itemType);
-            console.log(Agent.typeToClass[agent.goal.memory.itemType]);
             const { chosen, path } = agent.findPathToNearest(Agent.typeToClass[agent.goal.memory.itemType]);
             agent.goal.memory.targetTile = chosen;
             if (path.length > 0) {
